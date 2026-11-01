@@ -106,7 +106,7 @@ select { font-family: var(--f-body); }
 .seg button { flex: 1; border: 0; border-left: 1px solid var(--rule2); background: var(--ground); font-family: var(--f-mono); font-size: 13px; padding: 0 6px; white-space: nowrap; }
 .seg button:first-child { border-left: 0; }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--raised); }
-.seg button:disabled { color: var(--ink3); cursor: not-allowed; background: var(--sunk); }
+.seg button:disabled, .seg button[aria-disabled="true"] { color: var(--ink3); cursor: not-allowed; background: var(--sunk); }
 
 /* 分頁 */
 .stack { display: grid; gap: 28px; }
@@ -771,7 +771,7 @@ function renderCalc(c) {
     const why = TRAITS[x.tag].pos ? "why-pos" : state.curses === 0 ? "why-slot" : c.traits[1 - i].role === "curse" ? "why-one" : null;
     const canCurse = !why;
     $(`t${i}-role`).innerHTML = ["buff", "curse"].map((role) =>
-      `<button type="button" data-i="${i}" data-role="${role}" aria-pressed="${x.role === role}" ${role === "curse" && !canCurse ? "disabled" : ""}>${tr(role)}</button>`).join("");
+      `<button type="button" data-i="${i}" data-role="${role}" aria-pressed="${x.role === role}"${role === "curse" && !canCurse ? ` aria-disabled="true" title="${tr(why)}"` : ""}>${tr(role)}</button>`).join("");
     const inp = $(`t${i}-val`);
     if (document.activeElement !== inp) inp.value = state.vals[i];
     inp.placeholder = x.unit === "x" ? (x.role === "curse" ? "0.88" : "1.12") : "";
@@ -1136,7 +1136,7 @@ function init() {
   });
   for (const i of [0, 1]) {
     $(`t${i}-role`).addEventListener("click", (e) => {
-      const b = e.target.closest("button"); if (!b || b.disabled) return;
+      const b = e.target.closest("button"); if (!b || b.getAttribute("aria-disabled") === "true") return;
       state.roles[i] = b.dataset.role;
       if (b.dataset.role === "curse") state.roles[1 - i] = "buff";
       if (state.example) setExampleValues(currentRecipe());
