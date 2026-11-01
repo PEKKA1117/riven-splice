@@ -135,8 +135,14 @@ select { font-family: var(--f-body); }
 .card .seg { height: 32px; }
 .card .seg button { font-family: var(--f-body); }
 .inrow { position: relative; }
-.inrow input { height: 46px; font-size: 22px; padding-right: 44px; }
-.inrow .unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink3); font-family: var(--f-mono); pointer-events: none; }
+.inrow input { height: 46px; font-size: 22px; padding-right: 64px; }
+.inrow .unit { position: absolute; right: 38px; top: 50%; transform: translateY(-50%); color: var(--ink3); font-family: var(--f-mono); pointer-events: none; }
+/* 派系倍率：× 放在數字前面，跟 ×1.12 的寫法一致，也不會被當成清除鈕 */
+.inrow.pre input { padding-left: 30px; padding-right: 40px; }
+.inrow.pre .unit { left: 12px; right: auto; }
+.inrow .clr { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px;
+  display: grid; place-items: center; border: 0; border-radius: 4px; background: transparent; color: var(--ink3); font-size: 14px; line-height: 1; }
+.inrow .clr:hover { background: var(--sunk); color: var(--ink); }
 .range { font-size: 13px; color: var(--ink2); }
 .range .why { display: block; color: var(--ink3); }
 .roll { font-size: 13px; padding: 8px 10px; border-radius: 6px; background: var(--sunk); min-height: 2.6em; }
@@ -149,7 +155,7 @@ select { font-family: var(--f-body); }
 /* 擲值地圖 */
 .panel { background: var(--raised); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
 .target { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.target .inrow { width: 150px; }
+.target .inrow { width: 170px; }
 .target .inrow input { height: 38px; font-size: 16px; }
 .target-out { font-size: 14px; }
 .target-out b { font-family: var(--f-mono); font-weight: 500; }
@@ -265,7 +271,7 @@ a { color: var(--accent); }
       <div class="card" id="card0">
         <div class="name"><span class="sw s1"></span><span id="t0-name"></span></div>
         <div class="seg" role="group" id="t0-role"></div>
-        <div class="inrow"><input type="text" id="t0-val" inputmode="decimal" autocomplete="off"><span class="unit" id="t0-unit"></span></div>
+        <div class="inrow"><input type="text" id="t0-val" inputmode="decimal" autocomplete="off"><span class="unit" id="t0-unit"></span><button type="button" class="clr" data-for="t0-val" hidden>✕</button></div>
         <div class="range" id="t0-range"></div>
         <div class="roll" id="t0-roll"></div>
       </div>
@@ -273,7 +279,7 @@ a { color: var(--accent); }
       <div class="card" id="card1">
         <div class="name"><span class="sw s2"></span><span id="t1-name"></span></div>
         <div class="seg" role="group" id="t1-role"></div>
-        <div class="inrow"><input type="text" id="t1-val" inputmode="decimal" autocomplete="off"><span class="unit" id="t1-unit"></span></div>
+        <div class="inrow"><input type="text" id="t1-val" inputmode="decimal" autocomplete="off"><span class="unit" id="t1-unit"></span><button type="button" class="clr" data-for="t1-val" hidden>✕</button></div>
         <div class="range" id="t1-range"></div>
         <div class="roll" id="t1-roll"></div>
       </div>
@@ -292,7 +298,7 @@ a { color: var(--accent); }
     <div class="panel">
       <div class="target">
         <label for="target" class="small" style="font-weight:600" data-t="target"></label>
-        <div class="inrow"><input type="text" id="target" inputmode="decimal" autocomplete="off"><span class="unit" id="target-unit"></span></div>
+        <div class="inrow"><input type="text" id="target" inputmode="decimal" autocomplete="off"><span class="unit" id="target-unit"></span><button type="button" class="clr" data-for="target" hidden>✕</button></div>
         <div class="target-out" id="target-out"></div>
       </div>
       <div class="scroll"><svg id="nomo" viewBox="0 0 760 250" role="img" aria-labelledby="nomo-desc"><desc id="nomo-desc"></desc></svg></div>
@@ -484,7 +490,7 @@ const REACH_W = [0.90, 0.92, 0.94, 0.96, 0.98, 1.00, 1.02, 1.04, 1.06, 1.08, 1.1
 const I18N = {
   en: {
     eyebrow: "Warframe · Riven Splicer",
-    "theme-auto": "Auto", "theme-light": "Light", "theme-dark": "Dark", "theme-group": "Theme",
+    "theme-auto": "Auto", "theme-light": "Light", "theme-dark": "Dark", "theme-group": "Theme", clear: "Clear",
     title: "Riven Splice Calculator",
     lede: "Since the Riven Splicer arrived, finding out what a splice will give has meant digging through old riven calculators or the wiki’s formula tables, and most old calculators still use the retired per-weapon disposition. This page does the math for you. Enter the two traits on your riven to see the spliced value, or set a target to see how high each trait needs to roll. A splice never rerolls: it keeps the better roll of the two traits it consumes.",
     "h-riven": "Your Riven", "h-riven-sub": "Kitguns use the Pistol table, Zaws the Melee table.",
@@ -535,7 +541,7 @@ const I18N = {
   },
   zh: {
     eyebrow: "Warframe · 紫卡拼接器",
-    "theme-auto": "自動", "theme-light": "淺色", "theme-dark": "深色", "theme-group": "主題",
+    "theme-auto": "自動", "theme-light": "淺色", "theme-dark": "深色", "theme-group": "主題", clear: "清除",
     title: "紫卡拼接計算機",
     lede: "拼接器推出後，想知道一張紫卡拼下去會變幾 %，往往得翻舊的紫卡計算機或 wiki 的公式表自己算，而舊計算機多半還在用已經退役的武器傾向。這頁直接幫你算好：輸入紫卡上兩條屬性的數字，就能看到拼接後的數值；設定想要的目標值，則會列出兩條屬性各要洗到多少。拼接不會重新擲值，而是沿用兩條屬性中擲值較好的那一條。",
     "h-riven": "你的紫卡", "h-riven-sub": "組合槍套手槍係數，Zaw 套近戰係數。",
@@ -708,6 +714,7 @@ function applyI18n() {
   $("nomo-desc").textContent = tr("nomo-desc");
   for (const b of document.querySelectorAll(".lang button")) b.setAttribute("aria-pressed", String(b.dataset.lang === lang));
   $("theme-group").setAttribute("aria-label", tr("theme-group"));
+  for (const b of document.querySelectorAll(".clr")) { b.setAttribute("aria-label", tr("clear")); b.title = tr("clear"); }
   showTheme();
   $("rtype").innerHTML = RIVEN_TYPES.map((t, i) => `<option value="${i}">${nm(t)}</option>`).join("");
   $("lvl").innerHTML = Array.from({ length: 9 }, (_, i) => `<option value="${i}">${i}</option>`).join("");
@@ -798,6 +805,8 @@ function renderCalc(c) {
     if (document.activeElement !== inp) inp.value = state.vals[i];
     inp.placeholder = x.unit === "x" ? (x.role === "curse" ? "0.88" : "1.12") : "";
     $(`t${i}-unit`).textContent = x.unit === "x" ? "×" : x.unit;
+    inp.parentElement.classList.toggle("pre", x.unit === "x");
+    inp.parentElement.querySelector(".clr").hidden = !state.vals[i];
     const lo = fmt(x.unit, val(x.sc, 0.9), true), hi = fmt(x.unit, val(x.sc, 1.1), true);
     $(`t${i}-range`).textContent = tr(x.role === "curse" ? "range-curse" : "range-buff", lo, hi);
     if (why) $(`t${i}-range`).insertAdjacentHTML("beforeend", `<span class="why">${tr(why)}</span>`);
@@ -833,6 +842,8 @@ function renderTarget(c) {
   const out = $("target-out"), u = c.outUnit;
   $("target-unit").textContent = u === "x" ? "×" : u;
   const inp = $("target");
+  inp.parentElement.classList.toggle("pre", u === "x");
+  inp.parentElement.querySelector(".clr").hidden = !state.target;
   if (document.activeElement !== inp) inp.value = state.target;
   inp.placeholder = fmt(u, c.outSc, false).replace(/[×%+]/g, "");
   const mag = parseMag(u, state.target);
@@ -1119,6 +1130,13 @@ function init() {
     try { localStorage.setItem(LANG_KEY, lang); } catch (err) { /* 忽略 */ }
     applyI18n(); renderLegend(); render();
   };
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".clr"); if (!b) return;
+    const inp = $(b.dataset.for);
+    inp.value = "";
+    inp.dispatchEvent(new Event("input", { bubbles: true }));
+    inp.focus();
+  });
   $("theme-group").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (b) setTheme(b.dataset.themeSet);
   });
