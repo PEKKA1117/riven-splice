@@ -11,7 +11,8 @@
   --ink: #14121F; --ink2: #4D4A63; --ink3: #67637E;
   --rule: #D3D0E6; --rule2: #BBB7D4;
   --accent: #6E4BC4; --accent-soft: #E9E3FA;
-  --s1: #1C6FB5; --s2: #B4661B; --s3: #6E4BC4;
+  --s1: #2563C9; --s2: #B4661B; --s3: #6E4BC4;
+  --s1-soft: #C4D3F1; --s2-soft: #EAD4BF; --s3-soft: #D6CDEE;
   --bad: #B3261E; --bad-soft: #FBE9E7;
   --f-display: "Chakra Petch", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   --f-body: "IBM Plex Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
@@ -23,7 +24,8 @@
     --ink: #E2DFF0; --ink2: #A09BB8; --ink3: #847F9D;
     --rule: #262238; --rule2: #353049;
     --accent: #9F85E8; --accent-soft: #2A2245;
-    --s1: #4A93D6; --s2: #C4842F; --s3: #9F85E8;
+    --s1: #5B95E6; --s2: #C4842F; --s3: #9F85E8;
+  --s1-soft: #2B395F; --s2-soft: #48342B; --s3-soft: #3E345F;
     --bad: #F2867C; --bad-soft: #3A1C1C;
     color-scheme: dark;
   }
@@ -33,7 +35,8 @@
   --ink: #E2DFF0; --ink2: #A09BB8; --ink3: #847F9D;
   --rule: #262238; --rule2: #353049;
   --accent: #9F85E8; --accent-soft: #2A2245;
-  --s1: #4A93D6; --s2: #C4842F; --s3: #9F85E8;
+  --s1: #5B95E6; --s2: #C4842F; --s3: #9F85E8;
+  --s1-soft: #2B395F; --s2-soft: #48342B; --s3-soft: #3E345F;
   --bad: #F2867C; --bad-soft: #3A1C1C;
   color-scheme: dark;
 }
@@ -167,8 +170,8 @@ select { font-family: var(--f-body); }
 #nomo .lab { font-family: var(--f-body); font-size: 12.5px; font-weight: 600; fill: var(--ink); }
 #nomo .sub { font-family: var(--f-body); font-size: 11px; fill: var(--ink3); }
 #nomo .base { stroke: var(--rule2); stroke-width: 1; fill: none; }
-#nomo .band1 { stroke: var(--s1); } #nomo .band2 { stroke: var(--s2); } #nomo .band3 { stroke: var(--s3); }
-#nomo .band { stroke-width: 6; stroke-linecap: round; opacity: .28; fill: none; }
+#nomo .band1 { stroke: var(--s1-soft); } #nomo .band2 { stroke: var(--s2-soft); } #nomo .band3 { stroke: var(--s3-soft); }
+#nomo .band { stroke-width: 6; stroke-linecap: round; fill: none; }
 #nomo .tick { stroke: var(--rule2); fill: none; }
 #nomo .grid { stroke: var(--rule); stroke-dasharray: 2 4; fill: none; }
 #nomo .cur { stroke: var(--s3); stroke-width: 1.5; fill: none; }
