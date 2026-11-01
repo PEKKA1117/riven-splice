@@ -126,6 +126,7 @@ select { font-family: var(--f-body); }
 .inrow input { height: 46px; font-size: 22px; padding-right: 44px; }
 .inrow .unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink3); font-family: var(--f-mono); pointer-events: none; }
 .range { font-size: 13px; color: var(--ink2); }
+.range .why { display: block; color: var(--ink3); }
 .roll { font-size: 13px; padding: 8px 10px; border-radius: 6px; background: var(--sunk); min-height: 2.6em; }
 .roll.err { background: var(--bad-soft); color: var(--bad); }
 .roll.win { box-shadow: inset 3px 0 0 var(--s3); }
@@ -471,6 +472,7 @@ const I18N = {
     buff: "Buff", curse: "Curse",
     "range-buff": (a, b) => `Possible as buff: ${a} to ${b}`,
     "range-curse": (a, b) => `Possible as curse: ${a} to ${b}`,
+    "why-pos": "This trait only rolls as a buff.", "why-slot": "This layout has no curse slot.", "why-one": "The other trait is already the curse.",
     "roll-empty": "Enter a value to read its roll.",
     "roll-buff": (w) => `Roll ×${w}`,
     "roll-curse": (w) => `Roll ×${w}. On a curse a bigger number is a higher roll, and the splice uses that roll.`,
@@ -520,6 +522,7 @@ const I18N = {
     buff: "正面", curse: "負面",
     "range-buff": (a, b) => `正面可能範圍：${a} 到 ${b}`,
     "range-curse": (a, b) => `負面可能範圍：${a} 到 ${b}`,
+    "why-pos": "這條屬性只會是正面。", "why-slot": "這個配置沒有負面槽。", "why-one": "另一條已經是負面。",
     "roll-empty": "輸入數值即可讀出擲值。",
     "roll-buff": (w) => `擲值 ×${w}`,
     "roll-curse": (w) => `擲值 ×${w}。負面屬性數字越大代表擲值越高，拼接用的就是這個擲值。`,
@@ -742,7 +745,9 @@ function compute() {
 function renderCalc(c) {
   c.traits.forEach((x, i) => {
     $(`t${i}-name`).textContent = nm(TRAITS[x.tag]);
-    const canCurse = state.curses > 0 && !TRAITS[x.tag].pos && c.traits[1 - i].role !== "curse";
+    // 負面不能選時寫出原因：只會是正面 > 沒有負面槽 > 另一條已是負面
+    const why = TRAITS[x.tag].pos ? "why-pos" : state.curses === 0 ? "why-slot" : c.traits[1 - i].role === "curse" ? "why-one" : null;
+    const canCurse = !why;
     $(`t${i}-role`).innerHTML = ["buff", "curse"].map((role) =>
       `<button type="button" data-i="${i}" data-role="${role}" aria-pressed="${x.role === role}" ${role === "curse" && !canCurse ? "disabled" : ""}>${tr(role)}</button>`).join("");
     const inp = $(`t${i}-val`);
@@ -751,6 +756,7 @@ function renderCalc(c) {
     $(`t${i}-unit`).textContent = x.unit === "x" ? "×" : x.unit;
     const lo = fmt(x.unit, val(x.sc, 0.9), true), hi = fmt(x.unit, val(x.sc, 1.1), true);
     $(`t${i}-range`).textContent = tr(x.role === "curse" ? "range-curse" : "range-buff", lo, hi);
+    if (why) $(`t${i}-range`).insertAdjacentHTML("beforeend", `<span class="why">${tr(why)}</span>`);
     const box = $(`t${i}-roll`), rd = x.read;
     box.className = "roll";
     if (rd.empty) box.textContent = tr("roll-empty");
