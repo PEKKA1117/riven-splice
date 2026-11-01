@@ -195,7 +195,8 @@ select { font-family: var(--f-body); }
 .notes p { text-wrap: pretty; }
 .nw { white-space: nowrap; }
 .notes code { font-family: var(--f-mono); font-size: 12.5px; background: var(--sunk); padding: 1px 5px; border-radius: 4px; }
-footer.notes { border-top: 1px solid var(--rule); padding-top: 18px; }
+/* 頁尾左右縮排 = 面板內距 16px + 框線 1px，文字邊緣跟表格對齊 */
+footer.notes { border-top: 1px solid var(--rule); padding-top: 18px; padding-inline: 17px; }
 a { color: var(--accent); }
 
 @media (max-width: 900px) {
