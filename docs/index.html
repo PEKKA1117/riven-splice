@@ -545,7 +545,7 @@ const I18N = {
     "lg-cur": "Your splice", "lg-in": "Your traits",
     "nomo-desc": "Three aligned scales showing trait 1, trait 2 and the spliced value for each roll from ×0.90 to ×1.10.",
     "h-reach": "Reach table", "h-reach-sub": "Same roll, three numbers. Read a row across.",
-    roll: "Roll", pct: "Roll percentile",
+    roll: "Roll", pct: "Roll percentile", "v-min": "min", "v-max": "max",
     "reach-note": "On a curse a bigger number is a higher roll, so the harshest curse gives the best splice.",
     "h-all": "All recipes on this riven", "h-all-sub": "Ranges with both inputs as buffs, at the rank and layout above.",
     spliced: "Spliced", from: "From", "na-pool": (n) => `${n} can’t roll on this riven type`, "na-class": "Not offered for this weapon class",
@@ -596,7 +596,7 @@ const I18N = {
     "lg-cur": "你的拼接", "lg-in": "你的屬性",
     "nomo-desc": "三條對齊的刻度，顯示擲值 ×0.90 到 ×1.10 時屬性一、屬性二與拼接後的數值。",
     "h-reach": "對照表", "h-reach-sub": "同一個擲值對應的三個數字，橫著讀。",
-    roll: "擲值", pct: "擲值百分位",
+    roll: "擲值", pct: "擲值百分位", "v-min": "最小", "v-max": "最大",
     "reach-note": "負面屬性數字越大代表擲值越高，所以最重的負面反而拼得最好。",
     "h-all": "這張紫卡的所有配方", "h-all-sub": "兩條輸入都當正面計算，套用上方的等級與條數。",
     spliced: "拼接", from: "來源", "na-pool": (n) => `這種紫卡不會出現「${n}」`, "na-class": "這個武器類別沒有這條配方",
@@ -931,6 +931,9 @@ function renderNomo(c, need) {
       svg.appendChild(el("line", { x1: x, x2: x, y1: y - 5, y2: y + 5, class: "tick" }));
       svg.appendChild(el("text", { x, y: y + 19, "text-anchor": "middle" }, fmt(row.unit, val(row.sc, wOf(u)), true)));
     }
+    // 兩端標最小／最大值（×0.90 / ×1.10）；最大值跟 p99 只差 1%，放在橫條上方才不會疊字
+    svg.appendChild(el("text", { x: NOMO.L, y: y - 10, "text-anchor": "start", class: "sub" }, `${tr("v-min")} ${fmt(row.unit, val(row.sc, 0.9), true)}`));
+    svg.appendChild(el("text", { x: NOMO.R, y: y - 10, "text-anchor": "end", class: "sub" }, `${tr("v-max")} ${fmt(row.unit, val(row.sc, 1.1), true)}`));
     row.y = y;
   }
   // 使用者輸入的兩條屬性與拼接結果
