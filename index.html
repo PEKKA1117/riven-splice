@@ -948,10 +948,13 @@ function traitName(tag, t) {
 }
 function renderRanges(c) {
   const s = state, t = s.type;
-  const uses = {};  // tag → 這種紫卡上它能拼成的屬性
+  const uses = {};  // tag → Map(拼接屬性 → 用到這條屬性的配方 id)
   for (const r of RECIPES) {
     if (recipeBlock(r, t)) continue;
-    for (const tag of recipeTags(r, t)) (uses[tag] ??= new Set()).add(nm(SPLICED[r.out]));
+    for (const tag of recipeTags(r, t)) {
+      const m = (uses[tag] ??= new Map());
+      if (!m.has(r.out)) m.set(r.out, r.id);
+    }
   }
   const pick = new Set(c.traits.map((x) => x.tag));
   const range = (tag, sc) => {
@@ -965,7 +968,8 @@ function renderRanges(c) {
       const m = TRAITS[tag], b = BASE[tag][t];
       const buff = m.curseOnly ? dash : range(tag, buffScale(b, s));
       const curse = m.pos ? dash : s.curses === 0 ? `<span class="muted">${tr("no-curse")}</span>` : range(tag, curseScale(b, s));
-      const to = uses[tag] ? [...uses[tag]].join(lang === "zh" ? "、" : ", ") : "";
+      const to = uses[tag] ? [...uses[tag]].map(([out, id]) =>
+        `<button type="button" class="pick" data-r="${id}">${nm(SPLICED[out])}</button>`).join(lang === "zh" ? "、" : ", ") : "";
       return `<tr class="${pick.has(tag) ? "sel" : ""}"><td>${name}</td><td class="num">${buff}</td><td class="num">${curse}</td><td class="uses">${to}</td><td class="num b">${b}</td></tr>`;
     });
   $("ranges").innerHTML = `<thead><tr><th>${tr("attr")}</th><th class="num">${tr("buff-r")}</th><th class="num">${tr("curse-r")}</th><th>${tr("splice-to")}</th><th class="num b">${tr("b-col")}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
@@ -1023,6 +1027,14 @@ function init() {
   document.querySelector(".tabs").addEventListener("click", (e) => {
     const b = e.target.closest(".tab"); if (!b) return;
     state.tab = b.dataset.tab; showTab(); save();
+  });
+  // 屬性範圍表的拼接屬性連結：切回拼接計算並選好配方
+  $("ranges").addEventListener("click", (e) => {
+    const b = e.target.closest(".pick"); if (!b) return;
+    state.tab = "splice";
+    selectRecipe(b.dataset.r);
+    showTab(); save();
+    $("groups").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   });
   document.querySelector(".tabs").addEventListener("keydown", (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
