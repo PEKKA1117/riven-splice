@@ -86,6 +86,18 @@ select { font-family: var(--f-body); }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--raised); }
 .seg button:disabled { color: var(--ink3); cursor: not-allowed; background: var(--sunk); }
 
+/* 分頁 */
+.stack { display: grid; gap: 28px; }
+.stack[hidden] { display: none; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule2); overflow-x: auto; }
+.tab { border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; padding: 10px 16px;
+  font-family: var(--f-display); font-weight: 600; font-size: 16px; color: var(--ink2); white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tbl td.uses { white-space: normal; color: var(--ink2); font-size: 13px; min-width: 9em; }
+.tbl td.b { color: var(--ink3); font-size: 12.5px; }
+.tbl th.b { text-transform: none; }
+
 /* 配方晶片 */
 .groups { display: grid; gap: 12px; }
 .group { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: start; }
@@ -209,6 +221,12 @@ a { color: var(--accent); }
     </div>
   </section>
 
+  <div class="tabs" role="tablist" aria-label="View">
+    <button type="button" class="tab" role="tab" id="tab-splice" data-tab="splice" aria-controls="panel-splice" data-t="tab-splice"></button>
+    <button type="button" class="tab" role="tab" id="tab-ranges" data-tab="ranges" aria-controls="panel-ranges" data-t="tab-ranges"></button>
+  </div>
+
+  <div class="stack" id="panel-splice" role="tabpanel" aria-labelledby="tab-splice">
   <section class="sec">
     <div class="sec-head"><h2 data-t="h-recipe"></h2><span class="small muted" id="recipe-count"></span></div>
     <div class="groups" id="groups"></div>
@@ -266,6 +284,16 @@ a { color: var(--accent); }
     <div class="panel"><div class="scroll"><table class="tbl" id="all"></table></div></div>
   </section>
 
+  </div>
+
+  <div class="stack" id="panel-ranges" role="tabpanel" aria-labelledby="tab-ranges" hidden>
+  <section class="sec">
+    <div class="sec-head"><h2 data-t="h-ranges"></h2><span class="small muted" id="ranges-sub"></span></div>
+    <div class="panel"><div class="scroll"><table class="tbl" id="ranges"></table></div>
+      <div class="notes" data-t="ranges-note"></div></div>
+  </section>
+  </div>
+
   <footer class="notes" id="foot"></footer>
 </div>
 
@@ -311,6 +339,18 @@ const BASE = {
   WeaponZoomFovMod:              [0.006666, null, 0.0089, 0.0089, 0.006666, null, null],
   WeaponFireIterationsMod:       [0.01, 0.0133, 0.0133, 0.0133, 0.0067, null, null],
   WeaponCritChanceMod:           [0.016666, 0.01, 0.016666, 0.016666, 0.0111, 0.02, 0.02],
+  // 以下只出現在屬性範圍分頁
+  WeaponArmorPiercingDamageMod:  [0.01333, 0.01333, 0.01333, 0.01333, 0.01, 0.0133, 0.0133],
+  WeaponImpactDamageMod:         [0.013333, 0.013333, 0.013333, 0.013333, 0.01, 0.0133, 0.0133],
+  WeaponSlashDamageMod:          [0.013333, 0.013333, 0.013333, 0.013333, 0.01, 0.0133, 0.0133],
+  WeaponCritDamageMod:           [0.013333, 0.01, 0.01, 0.01, 0.0089, 0.01, 0.01],
+  WeaponProcTimeMod:             [0.01111, 0.01111, 0.01111, 0.01111, 0.01111, 0.01111, 0.01111],
+  WeaponProjectileSpeedMod:      [0.01, 0.01, 0.01, 0.01, null, null, null],
+  WeaponPunctureDepthMod:        _5(0.03),
+  SlideAttackCritChanceMod:      _M(0.013334),
+  WeaponMeleeFinisherDamageMod:  _M(0.0133),
+  WeaponMeleeComboInitialBonusMod: _M(0.27224),
+  WeaponMeleeComboPointsOnHitMod:  _M(-0.01165),
 };
 
 // 屬性名稱（中文取自遊戲官方繁中字串）；unit：% 百分比、x 派系倍率、s 秒、m 公尺；pos = 只會是正面
@@ -340,6 +380,18 @@ const TRAITS = {
   WeaponZoomFovMod:              { en: "Zoom", zh: "變焦", unit: "%" },
   WeaponFireIterationsMod:       { en: "Multishot", zh: "多重射擊", unit: "%" },
   WeaponCritChanceMod:           { en: "Critical Chance", zh: "暴擊機率", unit: "%" },
+  WeaponArmorPiercingDamageMod:  { en: "Puncture", zh: "穿刺傷害", unit: "%" },
+  WeaponImpactDamageMod:         { en: "Impact", zh: "衝擊傷害", unit: "%" },
+  WeaponSlashDamageMod:          { en: "Slash", zh: "切割傷害", unit: "%" },
+  WeaponCritDamageMod:           { en: "Critical Damage", zh: "暴擊傷害", unit: "%" },
+  WeaponProcTimeMod:             { en: "Status Duration", zh: "狀態持續時間", unit: "%" },
+  WeaponProjectileSpeedMod:      { en: "Projectile Speed", zh: "投射物速度", unit: "%" },
+  WeaponPunctureDepthMod:        { en: "Punch Through", zh: "穿透", unit: "m", pos: true },
+  SlideAttackCritChanceMod:      { en: "Critical Chance for Slide Attack", zh: "滑行攻擊暴擊機率", unit: "%" },
+  WeaponMeleeFinisherDamageMod:  { en: "Finisher Damage", zh: "處決傷害", unit: "%" },
+  WeaponMeleeComboInitialBonusMod: { en: "Initial Combo", zh: "起始連擊數", unit: "n", pos: true },
+  // 只會是負面；遊戲以 −100v% 顯示
+  WeaponMeleeComboPointsOnHitMod:  { en: "Chance to Gain Combo Count", zh: "機率獲得連擊數", unit: "%", neg: true, curseOnly: true },
 };
 
 // 拼接屬性與其基礎係數（Riven Mods wiki「Spliced attribute base coefficients」），欄 = RIVEN_TYPES.col
@@ -440,6 +492,12 @@ const I18N = {
     "h-all": "All recipes on this riven", "h-all-sub": "Ranges with both inputs as buffs, at the rank and layout above.",
     spliced: "Spliced", from: "From", "na-pool": (n) => `${n} can’t roll on this riven type`, "na-class": "Not offered for this weapon class",
     g_elem: "Elements", g_fac: "Faction", g_gen: "General", g_ranged: "Ranged", g_melee: "Melee",
+    "tab-splice": "Splice", "tab-ranges": "Trait ranges",
+    "h-ranges": "Trait ranges",
+    "ranges-sub": (type, k) => `Every trait a ${type} riven can roll, at rank and layout above (${k}).`,
+    attr: "Trait", "buff-r": "As buff", "curse-r": "As curse", "splice-to": "Splices into", "b-col": "Base b",
+    "no-curse": "No curse slot",
+    "ranges-note": `<p>Ranges run from roll ×0.90 to ×1.10. Heat, Cold, Toxin, Electricity, Damage, Punch Through, Initial Combo and Additional Combo Count Chance only roll as buffs; Chance to Gain Combo Count only rolls as a curse.</p><p>Physical damage traits (Impact, Puncture, Slash) usually need the weapon to have more than 25% of that damage type. Rows highlighted are the two traits of the recipe picked on the Splice tab.</p>`,
     foot: `<p><b>Formula.</b> <code>v = b × 10 × (rank + 1) × D × L × W</code>, computed step by step in 32-bit floats. D = 1.2 for every weapon since disposition was retired in 44.1.3. L is 0.99 / 1.2375 / 0.75 / 0.9375 for a buff on a 2+0 / 2+1 / 3+0 / 3+1 riven, and −0.495 / −0.75 for the curse on 2+1 / 3+1. W = 0.9 + 0.2u runs from 0.90 to 1.10. A spliced trait takes the larger W of the two consumed traits and uses the buff L with its own <code>b</code>. The buff/curse layout never changes when you splice.</p>
 <p><b>Rounding.</b> The game rounds what it shows, so a typed value maps to a narrow band of rolls. When that band changes the spliced number, the card shows the band. The game also computes in 32-bit floats; expect the last digit to differ now and then.</p>
 <p><b>Sources.</b> Recipes and spliced base coefficients from the <a href="https://wiki.warframe.com/w/Riven_Mods#Spliced_Values" target="_blank" rel="noopener">Warframe wiki</a>. Trait coefficients and trait pools from DE’s public export via <a href="https://browse.wf/rivencalc" target="_blank" rel="noopener">browse.wf</a>. Vintage companion traits and per-weapon physical damage limits are not modelled.</p>`,
@@ -482,6 +540,12 @@ const I18N = {
     "h-all": "這張紫卡的所有配方", "h-all-sub": "兩條輸入都當正面計算，套用上方的等級與條數。",
     spliced: "拼接", from: "來源", "na-pool": (n) => `這種紫卡不會出現「${n}」`, "na-class": "這個武器類別沒有這條配方",
     g_elem: "元素", g_fac: "派系", g_gen: "通用", g_ranged: "遠程", g_melee: "近戰",
+    "tab-splice": "拼接計算", "tab-ranges": "屬性範圍",
+    "h-ranges": "屬性範圍",
+    "ranges-sub": (type, k) => `${type}紫卡可能出現的所有屬性，套用上方的等級與條數（${k}）。`,
+    attr: "屬性", "buff-r": "正面範圍", "curse-r": "負面範圍", "splice-to": "可拼接成", "b-col": "基礎係數 b",
+    "no-curse": "沒有負面槽",
+    "ranges-note": `<p>範圍是擲值 ×0.90 到 ×1.10。火焰、冰凍、毒素、電擊、傷害、穿透、起始連擊數、額外連擊數機率只會是正面；機率獲得連擊數只會是負面。</p><p>物理傷害屬性（衝擊、穿刺、切割）通常要武器該傷害類型超過 25% 才洗得出來。標色的兩列是「拼接計算」分頁目前選的配方。</p>`,
     foot: `<p><b>公式。</b><code>v = b × 10 × (等級 + 1) × D × L × W</code>，以 32 位元浮點逐步計算。傾向在 44.1.3 退役後，所有武器 D = 1.2。正面的 L 在 2+0 / 2+1 / 3+0 / 3+1 時為 0.99 / 1.2375 / 0.75 / 0.9375，負面在 2+1 / 3+1 時為 −0.495 / −0.75。W = 0.9 + 0.2u，介於 0.90 與 1.10。拼接屬性取兩條被消耗屬性中較大的 W，以自己的 <code>b</code> 套正面的 L。拼接不會改變正負面配置。</p>
 <p><b>四捨五入。</b>遊戲顯示的數值有四捨五入，所以輸入值對應的是一小段擲值；這段範圍若會影響拼接結果，卡片會標出來。遊戲用 32 位元浮點運算，最後一位偶爾會差一點。</p>
 <p><b>來源。</b>配方與拼接基礎係數取自 <a href="https://wiki.warframe.com/w/Riven_Mods#Spliced_Values" target="_blank" rel="noopener">Warframe wiki</a>；屬性係數與各類型可出現的屬性取自 DE 公開匯出資料（經由 <a href="https://browse.wf/rivencalc" target="_blank" rel="noopener">browse.wf</a>）。未處理同伴紫卡的舊版屬性，以及個別武器的物理傷害限制。</p>`,
@@ -500,7 +564,7 @@ const STORE_KEY = "riven-splice-v2";
 const state = {
   type: 0, lvl: 8, buffs: 2, curses: 1,
   recipe: "wpcrit-ms", roles: ["buff", "buff"], vals: ["", ""], target: "",
-  example: true,
+  example: true, tab: "splice",
 };
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* 私密視窗等情況 */ }
@@ -556,7 +620,7 @@ function fmt(unit, v, signed) {
   const d = dispNum(unit, v);
   if (unit === "x") return "×" + d.toFixed(2);
   const sign = signed && d > 0 ? "+" : "";
-  return sign + d.toFixed(1) + (unit === "%" ? "%" : unit);
+  return sign + d.toFixed(1) + (unit === "%" ? "%" : unit === "n" ? "" : unit);
 }
 const halfStep = (unit) => (unit === "%" ? 0.0005 : unit === "x" ? 0.005 : 0.05);
 // 輸入字串 → 數值的絕對值；派系屬性接受 ×1.12 或 0.88 這種倍率，也接受百分比
@@ -862,6 +926,58 @@ function renderAll(c) {
   $("all").innerHTML = head + "<tbody>" + rows.filter((r) => !r.na).map((r) => r.html).join("") + rows.filter((r) => r.na).map((r) => r.html).join("") + "</tbody>";
 }
 
+// 屬性範圍表的列順序：傷害 → 暴擊 → 元素 → 物理 → 派系 → 彈藥與操控 → 近戰專屬
+const RANGE_ORDER = [
+  "WeaponDamageAmountMod", "WeaponMeleeDamageMod", "WeaponFireIterationsMod", "WeaponFireRateMod",
+  "WeaponCritChanceMod", "WeaponCritDamageMod", "SlideAttackCritChanceMod",
+  "WeaponStunChanceMod", "WeaponProcTimeMod",
+  "WeaponFireDamageMod", "WeaponFreezeDamageMod", "WeaponToxinDamageMod", "WeaponElectricityDamageMod",
+  "WeaponImpactDamageMod", "WeaponArmorPiercingDamageMod", "WeaponSlashDamageMod",
+  "WeaponFactionDamageCorpus", "WeaponFactionDamageGrineer", "WeaponFactionDamageInfested",
+  "WeaponMeleeFactionDamageCorpus", "WeaponMeleeFactionDamageGrineer", "WeaponMeleeFactionDamageInfested",
+  "WeaponClipMaxMod", "WeaponReloadSpeedMod", "WeaponAmmoMaxMod", "WeaponRecoilReductionMod",
+  "WeaponZoomFovMod", "WeaponProjectileSpeedMod", "WeaponPunctureDepthMod",
+  "WeaponMeleeRangeIncMod", "WeaponMeleeFinisherDamageMod", "WeaponMeleeComboEfficiencyMod",
+  "ComboDurationMod", "WeaponMeleeComboInitialBonusMod", "WeaponMeleeComboBonusOnHitMod", "WeaponMeleeComboPointsOnHitMod",
+];
+// 部分屬性在遠程與近戰的名稱不同
+function traitName(tag, t) {
+  if (tag === "WeaponFireRateMod" && !isMelee(t)) return lang === "zh" ? "射速（弓類加倍）" : "Fire Rate (x2 for Bows)";
+  if (tag === "WeaponCritChanceMod" && isMelee(t)) return lang === "zh" ? "暴擊機率（重擊 x 2）" : "Critical Chance (x2 for Heavy Attacks)";
+  return nm(TRAITS[tag]);
+}
+function renderRanges(c) {
+  const s = state, t = s.type;
+  const uses = {};  // tag → 這種紫卡上它能拼成的屬性
+  for (const r of RECIPES) {
+    if (recipeBlock(r, t)) continue;
+    for (const tag of recipeTags(r, t)) (uses[tag] ??= new Set()).add(nm(SPLICED[r.out]));
+  }
+  const pick = new Set(c.traits.map((x) => x.tag));
+  const range = (tag, sc) => {
+    const m = TRAITS[tag], sign = m.neg ? -1 : 1;
+    return `${fmt(m.unit, sign * val(sc, 0.9), true)} – ${fmt(m.unit, sign * val(sc, 1.1), true)}`;
+  };
+  const dash = `<span class="muted">—</span>`;
+  const rows = RANGE_ORDER.filter((tag) => BASE[tag][t] != null)
+    .map((tag) => ({ tag, name: traitName(tag, t) }))
+    .map(({ tag, name }) => {
+      const m = TRAITS[tag], b = BASE[tag][t];
+      const buff = m.curseOnly ? dash : range(tag, buffScale(b, s));
+      const curse = m.pos ? dash : s.curses === 0 ? `<span class="muted">${tr("no-curse")}</span>` : range(tag, curseScale(b, s));
+      const to = uses[tag] ? [...uses[tag]].join(lang === "zh" ? "、" : ", ") : "";
+      return `<tr class="${pick.has(tag) ? "sel" : ""}"><td>${name}</td><td class="num">${buff}</td><td class="num">${curse}</td><td class="uses">${to}</td><td class="num b">${b}</td></tr>`;
+    });
+  $("ranges").innerHTML = `<thead><tr><th>${tr("attr")}</th><th class="num">${tr("buff-r")}</th><th class="num">${tr("curse-r")}</th><th>${tr("splice-to")}</th><th class="num b">${tr("b-col")}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  $("ranges-sub").textContent = tr("ranges-sub", nm(RIVEN_TYPES[t]), `${s.lvl} · ${layoutKey(s)}`);
+}
+function showTab() {
+  if (state.tab !== "ranges") state.tab = "splice";
+  for (const b of document.querySelectorAll(".tab")) b.setAttribute("aria-selected", String(b.dataset.tab === state.tab));
+  $("panel-splice").hidden = state.tab !== "splice";
+  $("panel-ranges").hidden = state.tab !== "ranges";
+}
+
 function render() {
   renderSetup();
   renderChips();
@@ -874,6 +990,8 @@ function render() {
   renderNomo(c, need);
   renderReach(c);
   renderAll(c);
+  renderRanges(c);
+  showTab();
   save();
 }
 
@@ -891,6 +1009,7 @@ function init() {
   const had = load();
   try { const l = localStorage.getItem(LANG_KEY); if (l === "en" || l === "zh") lang = l; } catch (e) { /* 忽略 */ }
   if (!had) setExampleValues(currentRecipe());
+  if (location.hash === "#ranges") state.tab = "ranges";
   applyI18n();
   renderLegend();
   render();
@@ -901,6 +1020,15 @@ function init() {
     applyI18n(); renderLegend(); render();
   };
   $("rtype").onchange = (e) => { state.type = +e.target.value; render(); };
+  document.querySelector(".tabs").addEventListener("click", (e) => {
+    const b = e.target.closest(".tab"); if (!b) return;
+    state.tab = b.dataset.tab; showTab(); save();
+  });
+  document.querySelector(".tabs").addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    state.tab = state.tab === "splice" ? "ranges" : "splice"; showTab(); save();
+    $(`tab-${state.tab}`).focus();
+  });
   $("lvl").onchange = (e) => { state.lvl = +e.target.value; render(); };
   $("layout").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;

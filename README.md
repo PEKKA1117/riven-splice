@@ -2,9 +2,9 @@
 
 https://pekka1117.github.io/riven-splice/
 
-Warframe 拼接器（Riven Splicer）的計算工具。輸入紫卡上兩條屬性的數字，直接算出拼接後的數值；設定目標值，則會列出兩條屬性各要洗到多少。
+Warframe 拼接器（Riven Splicer）的計算工具。輸入紫卡上兩條屬性的數字，直接算出拼接後的數值；設定目標值，則會列出兩條屬性各要洗到多少。「屬性範圍」分頁列出每種紫卡所有屬性的正面／負面範圍，以及各屬性能拼接成什麼。
 
-A calculator for Warframe's Riven Splicer. Enter the two traits on your riven to get the spliced value, or set a target to see how high each trait needs to roll.
+A calculator for Warframe's Riven Splicer. Enter the two traits on your riven to get the spliced value, or set a target to see how high each trait needs to roll. The Trait ranges tab lists every trait's buff and curse range for each riven type, and what it splices into.
 
 ![拼接區截圖](docs/preview.png)
 
