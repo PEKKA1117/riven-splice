@@ -120,7 +120,18 @@ select { font-family: var(--f-body); }
 .tbl td.b { color: var(--ink3); font-size: 12.5px; }
 .tbl th.b { text-transform: none; }
 .tbl td.pin, .tbl th.pin { width: 1%; padding-right: 2px; }
-.tbl td.pin input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; vertical-align: middle; }
+/* 置頂勾選框：自繪，跟著主題色而不是系統預設 */
+.tbl td.pin input { appearance: none; -webkit-appearance: none; margin: 0; display: grid; place-content: center;
+  width: 18px; height: 18px; border: 1.5px solid var(--ink3); border-radius: 4px; background: var(--ground);
+  cursor: pointer; vertical-align: middle; }
+.tbl td.pin input::after { content: ""; width: 5px; height: 9px; margin-top: -2px;
+  border: solid var(--raised); border-width: 0 2px 2px 0; transform: rotate(45deg) scale(0); }
+.tbl td.pin input:hover { border-color: var(--accent); }
+.tbl td.pin input:checked { background: var(--accent); border-color: var(--accent); }
+.tbl td.pin input:checked::after { transform: rotate(45deg) scale(1); }
+@media (prefers-reduced-motion: no-preference) {
+  .tbl td.pin input, .tbl td.pin input::after { transition: background-color .12s, border-color .12s, transform .12s; }
+}
 .tbl tr.pinned td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .tbl tr.pin-end td { border-bottom: 1px solid var(--rule2); }
 
