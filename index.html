@@ -59,8 +59,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* 標頭 */
-.top { display: flex; gap: 20px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
-.top .intro { display: grid; gap: 8px; max-width: 68ch; min-width: 0; }
+/* 標頭：眉標與切換鈕同一列，標題與簡介用滿整個寬度 */
+.top { display: grid; gap: 8px; min-width: 0; }
+.top .bar { display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.top .lede { text-wrap: pretty; }
 .ctrls { display: flex; gap: 8px; flex-wrap: wrap; }
 .lang, .theme { display: inline-flex; border: 1px solid var(--rule2); border-radius: 6px; overflow: hidden; }
 .lang button, .theme button { border: 0; background: transparent; padding: 6px 12px; font-size: 13px; }
@@ -219,12 +221,9 @@ a { color: var(--accent); }
 
 <div class="wrap">
   <header class="top">
-    <div class="intro">
+    <div class="bar">
       <div class="eyebrow" data-t="eyebrow"></div>
-      <h1 data-t="title"></h1>
-      <p class="muted" data-t="lede"></p>
-    </div>
-    <div class="ctrls">
+      <div class="ctrls">
       <div class="theme" role="group" id="theme-group">
         <button type="button" id="theme-auto" data-theme-set="auto" data-t="theme-auto"></button>
         <button type="button" id="theme-light" data-theme-set="light" data-t="theme-light"></button>
@@ -234,7 +233,10 @@ a { color: var(--accent); }
         <button type="button" id="lang-en" data-lang="en">EN</button>
         <button type="button" id="lang-zh" data-lang="zh">中文</button>
       </div>
+      </div>
     </div>
+    <h1 data-t="title"></h1>
+    <p class="muted lede" data-t="lede"></p>
   </header>
 
   <section class="sec">
