@@ -119,6 +119,10 @@ select { font-family: var(--f-body); }
 .tbl td.uses { white-space: normal; color: var(--ink2); font-size: 13px; min-width: 9em; }
 .tbl td.b { color: var(--ink3); font-size: 12.5px; }
 .tbl th.b { text-transform: none; }
+.tbl td.pin, .tbl th.pin { width: 1%; padding-right: 2px; }
+.tbl td.pin input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; vertical-align: middle; }
+.tbl tr.pinned td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl tr.pin-end td { border-bottom: 1px solid var(--rule2); }
 
 /* 配方晶片 */
 .groups { display: grid; gap: 12px; }
@@ -517,9 +521,10 @@ const I18N = {
     "tab-splice": "Splice", "tab-ranges": "Trait ranges",
     "h-ranges": "Trait ranges",
     "ranges-sub": (type, k) => `Every trait a ${type} riven can roll, at rank and layout above (${k}).`,
+    pin: "Pin", "pin-label": (n) => `Pin ${n} to the top`,
     attr: "Trait", "buff-r": "As buff", "curse-r": "As curse", "splice-to": "Splices into", "b-col": "Base b",
     "no-curse": "No curse slot",
-    "ranges-note": `<p>Ranges run from roll ×0.90 to ×1.10. Heat, Cold, Toxin, Electricity, Damage, Punch Through, Initial Combo and Additional Combo Count Chance only roll as buffs; Chance to Gain Combo Count only rolls as a curse.</p><p>Physical damage traits (Impact, Puncture, Slash) usually need the weapon to have more than 25% of that damage type. Rows highlighted are the two traits of the recipe picked on the Splice tab.</p>`,
+    "ranges-note": `<p>Ranges run from roll ×0.90 to ×1.10. Heat, Cold, Toxin, Electricity, Damage, Punch Through, Initial Combo and Additional Combo Count Chance only roll as buffs; Chance to Gain Combo Count only rolls as a curse.</p><p>Physical damage traits (Impact, Puncture, Slash) usually need the weapon to have more than 25% of that damage type. Rows highlighted are the two traits of the recipe picked on the Splice tab.</p><p>Elemental and faction traits with identical values share one row. Tick the box on the left to pin a row to the top; pins are remembered.</p>`,
     foot: `<p><b>Formula.</b> <code>v = b × 10 × (rank + 1) × D × L × W</code>, computed step by step in 32-bit floats. D = 1.2 for every weapon since disposition was retired in 44.1.3. L is 0.99 / 1.2375 / 0.75 / 0.9375 for a buff on a 2+0 / 2+1 / 3+0 / 3+1 riven, and −0.495 / −0.75 for the curse on 2+1 / 3+1. W = 0.9 + 0.2u runs from 0.90 to 1.10. A spliced trait takes the larger W of the two consumed traits and uses the buff L with its own <code>b</code>. The buff/curse layout never changes when you splice.</p>
 <p><b>Rounding.</b> The game rounds what it shows, so a typed value maps to a narrow band of rolls. When that band changes the spliced number, the card shows the band. The game also computes in 32-bit floats; expect the last digit to differ now and then.</p>
 <p><b>Sources.</b> Recipes and spliced base coefficients from the <a href="https://wiki.warframe.com/w/Riven_Mods#Spliced_Values" target="_blank" rel="noopener">Warframe wiki</a>. Trait coefficients and trait pools from DE’s public export via <a href="https://browse.wf/rivencalc" target="_blank" rel="noopener">browse.wf</a>. Vintage companion traits and per-weapon physical damage limits are not modelled.</p>`,
@@ -565,9 +570,10 @@ const I18N = {
     "tab-splice": "拼接計算", "tab-ranges": "屬性範圍",
     "h-ranges": "屬性範圍",
     "ranges-sub": (type, k) => `${type}紫卡可能出現的所有屬性，套用上方的等級與條數（${k}）。`,
+    pin: "置頂", "pin-label": (n) => `把「${n}」置頂`,
     attr: "屬性", "buff-r": "正面範圍", "curse-r": "負面範圍", "splice-to": "可拼接成", "b-col": "基礎係數 b",
     "no-curse": "沒有負面槽",
-    "ranges-note": `<p>範圍是擲值 ×0.90 到 ×1.10。火焰、冰凍、毒素、電擊、傷害、穿透、起始連擊數、額外連擊數機率只會是正面；機率獲得連擊數只會是負面。</p><p>物理傷害屬性（衝擊、穿刺、切割）通常要武器該傷害類型超過 25% 才洗得出來。標色的兩列是「拼接計算」分頁目前選的配方。</p>`,
+    "ranges-note": `<p>範圍是擲值 ×0.90 到 ×1.10。火焰、冰凍、毒素、電擊、傷害、穿透、起始連擊數、額外連擊數機率只會是正面；機率獲得連擊數只會是負面。</p><p>物理傷害屬性（衝擊、穿刺、切割）通常要武器該傷害類型超過 25% 才洗得出來。標色的列是「拼接計算」分頁目前選的配方。</p><p>數值相同的元素傷害與派系傷害合併成一列。勾選左側方塊可把該列置頂，會記住。</p>`,
     foot: `<p><b>公式。</b><code>v = b × 10 × (等級 + 1) × D × L × W</code>，以 32 位元浮點逐步計算。傾向在 44.1.3 退役後，所有武器 D = 1.2。正面的 L 在 2+0 / 2+1 / 3+0 / 3+1 時為 0.99 / 1.2375 / 0.75 / 0.9375，負面在 2+1 / 3+1 時為 −0.495 / −0.75。W = 0.9 + 0.2u，介於 0.90 與 1.10。拼接屬性取兩條被消耗屬性中較大的 W，以自己的 <code>b</code> 套正面的 L。拼接不會改變正負面配置。</p>
 <p><b>四捨五入。</b>遊戲顯示的數值有四捨五入，所以輸入值對應的是一小段擲值；這段範圍若會影響拼接結果，卡片會標出來。遊戲用 32 位元浮點運算，最後一位偶爾會差一點。</p>
 <p><b>來源。</b>配方與拼接基礎係數取自 <a href="https://wiki.warframe.com/w/Riven_Mods#Spliced_Values" target="_blank" rel="noopener">Warframe wiki</a>；屬性係數與各類型可出現的屬性取自 DE 公開匯出資料（經由 <a href="https://browse.wf/rivencalc" target="_blank" rel="noopener">browse.wf</a>）。未處理同伴紫卡的舊版屬性，以及個別武器的物理傷害限制。</p>`,
@@ -586,7 +592,7 @@ const STORE_KEY = "riven-splice-v2";
 const state = {
   type: 0, lvl: 8, buffs: 2, curses: 1,
   recipe: "wpcrit-ms", roles: ["buff", "buff"], vals: ["", ""], target: "",
-  example: true, tab: "splice",
+  example: true, tab: "splice", pins: [],
 };
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* 私密視窗等情況 */ }
@@ -962,6 +968,17 @@ const RANGE_ORDER = [
   "WeaponMeleeRangeIncMod", "WeaponMeleeFinisherDamageMod", "WeaponMeleeComboEfficiencyMod",
   "ComboDurationMod", "WeaponMeleeComboInitialBonusMod", "WeaponMeleeComboBonusOnHitMod", "WeaponMeleeComboPointsOnHitMod",
 ];
+// 數值相同時合併成一列的屬性群組；short = 合併列括號內的簡稱
+const MERGE = [
+  { key: "elem", en: "Elemental damage", zh: "元素傷害", short: {
+      WeaponFireDamageMod: ["Heat", "火焰"], WeaponFreezeDamageMod: ["Cold", "冰凍"],
+      WeaponToxinDamageMod: ["Toxin", "毒素"], WeaponElectricityDamageMod: ["Electricity", "電擊"] } },
+  { key: "fac", en: "Faction damage", zh: "派系傷害", short: {
+      WeaponFactionDamageCorpus: ["Corpus", "Corpus"], WeaponFactionDamageGrineer: ["Grineer", "Grineer"],
+      WeaponFactionDamageInfested: ["Infested", "Infested"],
+      WeaponMeleeFactionDamageCorpus: ["Corpus", "Corpus"], WeaponMeleeFactionDamageGrineer: ["Grineer", "Grineer"],
+      WeaponMeleeFactionDamageInfested: ["Infested", "Infested"] } },
+];
 // 部分屬性在遠程與近戰的名稱不同
 function traitName(tag, t) {
   if (tag === "WeaponFireRateMod" && !isMelee(t)) return lang === "zh" ? "射速（弓類加倍）" : "Fire Rate (x2 for Bows)";
@@ -978,23 +995,43 @@ function renderRanges(c) {
       if (!m.has(r.out)) m.set(r.out, r.id);
     }
   }
+  // 組列：同群組且 b 相同的屬性併成一列，key 用群組名，否則用 tag
+  const present = RANGE_ORDER.filter((tag) => BASE[tag][t] != null);
+  const items = [], done = new Set();
+  for (const tag of present) {
+    if (done.has(tag)) continue;
+    const g = MERGE.find((m) => tag in m.short);
+    const mates = g ? present.filter((x) => x in g.short && BASE[x][t] === BASE[tag][t]) : [tag];
+    mates.forEach((x) => done.add(x));
+    const sep = lang === "zh" ? "／" : " / ";
+    const name = mates.length > 1
+      ? `${nm(g)}（${mates.map((x) => g.short[x][lang === "zh" ? 1 : 0]).join(sep)}）`
+      : traitName(tag, t);
+    items.push({ key: mates.length > 1 ? g.key : tag, tag, tags: mates, name });
+  }
+  const pins = new Set(s.pins);
+  const ordered = [...items.filter((x) => pins.has(x.key)), ...items.filter((x) => !pins.has(x.key))];
+  const nPinned = ordered.filter((x) => pins.has(x.key)).length;
+
   const pick = new Set(c.traits.map((x) => x.tag));
   const range = (tag, sc) => {
     const m = TRAITS[tag], sign = m.neg ? -1 : 1;
     return `${fmt(m.unit, sign * val(sc, 0.9), true)} – ${fmt(m.unit, sign * val(sc, 1.1), true)}`;
   };
   const dash = `<span class="muted">—</span>`;
-  const rows = RANGE_ORDER.filter((tag) => BASE[tag][t] != null)
-    .map((tag) => ({ tag, name: traitName(tag, t) }))
-    .map(({ tag, name }) => {
-      const m = TRAITS[tag], b = BASE[tag][t];
-      const buff = m.curseOnly ? dash : range(tag, buffScale(b, s));
-      const curse = m.pos ? dash : s.curses === 0 ? `<span class="muted">${tr("no-curse")}</span>` : range(tag, curseScale(b, s));
-      const to = uses[tag] ? [...uses[tag]].map(([out, id]) =>
-        `<button type="button" class="pick" data-r="${id}">${nm(SPLICED[out])}</button>`).join(lang === "zh" ? "、" : ", ") : "";
-      return `<tr class="${pick.has(tag) ? "sel" : ""}"><td>${name}</td><td class="num">${buff}</td><td class="num">${curse}</td><td class="uses">${to}</td><td class="num b">${b}</td></tr>`;
-    });
-  $("ranges").innerHTML = `<thead><tr><th>${tr("attr")}</th><th class="num">${tr("buff-r")}</th><th class="num">${tr("curse-r")}</th><th>${tr("splice-to")}</th><th class="num b">${tr("b-col")}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  const rows = ordered.map((it, i) => {
+    const { tag } = it, m = TRAITS[tag], b = BASE[tag][t];
+    const buff = m.curseOnly ? dash : range(tag, buffScale(b, s));
+    const curse = m.pos ? dash : s.curses === 0 ? `<span class="muted">${tr("no-curse")}</span>` : range(tag, curseScale(b, s));
+    const outs = new Map();
+    for (const x of it.tags) for (const [out, id] of uses[x] ?? []) if (!outs.has(out)) outs.set(out, id);
+    const to = [...outs].map(([out, id]) =>
+      `<button type="button" class="pick" data-r="${id}">${nm(SPLICED[out])}</button>`).join(lang === "zh" ? "、" : ", ");
+    const on = pins.has(it.key);
+    const cls = [it.tags.some((x) => pick.has(x)) ? "sel" : "", on ? "pinned" : "", on && i === nPinned - 1 ? "pin-end" : ""].join(" ").trim();
+    return `<tr class="${cls}"><td class="pin"><input type="checkbox" class="pinbox" data-k="${it.key}" aria-label="${tr("pin-label", it.name)}"${on ? " checked" : ""}></td><td>${it.name}</td><td class="num">${buff}</td><td class="num">${curse}</td><td class="uses">${to}</td><td class="num b">${b}</td></tr>`;
+  });
+  $("ranges").innerHTML = `<thead><tr><th class="pin">${tr("pin")}</th><th>${tr("attr")}</th><th class="num">${tr("buff-r")}</th><th class="num">${tr("curse-r")}</th><th>${tr("splice-to")}</th><th class="num b">${tr("b-col")}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
   $("ranges-sub").textContent = tr("ranges-sub", nm(RIVEN_TYPES[t]), `${s.lvl} · ${layoutKey(s)}`);
 }
 function showTab() {
@@ -1049,6 +1086,14 @@ function init() {
   document.querySelector(".tabs").addEventListener("click", (e) => {
     const b = e.target.closest(".tab"); if (!b) return;
     state.tab = b.dataset.tab; showTab(); save();
+  });
+  // 置頂勾選：重繪後把焦點放回同一個方塊，鍵盤操作才不會跳走
+  $("ranges").addEventListener("change", (e) => {
+    const box = e.target.closest(".pinbox"); if (!box) return;
+    const k = box.dataset.k;
+    state.pins = box.checked ? [...state.pins.filter((x) => x !== k), k] : state.pins.filter((x) => x !== k);
+    renderRanges(compute()); save();
+    $("ranges").querySelector(`.pinbox[data-k="${k}"]`)?.focus();
   });
   // 屬性範圍表的拼接屬性連結：切回拼接計算並選好配方
   $("ranges").addEventListener("click", (e) => {
