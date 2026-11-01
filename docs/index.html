@@ -535,7 +535,7 @@ const I18N = {
     "out-why-one": (n, w) => `At least this, from ${n}’s roll ×${w}. Enter the other trait too: a higher roll there wins.`,
     "out-span": (a, b) => `Rounding of the shown values allows ${a} to ${b}.`,
     "out-range": (a, b) => `Spliced range on this riven: ${a} to ${b}`,
-    "h-map": "Roll map", "h-map-sub": "All three scales line up by roll. Hover or drag to read across.",
+    "h-map": "Roll map", "h-map-sub": "All three scales line up by roll, ticked at the 0th, 25th, 50th, 75th and 99th percentile. Hover or drag to read across.",
     target: "Target spliced value",
     "target-out": (p, a, q, b) => `Needs <span class="c1">${p}</span> at <b>${a}</b> or beyond, or <span class="c2">${q}</span> at <b>${b}</b> or beyond.`,
     "target-any": (m) => `Every roll reaches it. The lowest possible splice is <b>${m}</b>.`,
@@ -545,7 +545,7 @@ const I18N = {
     "lg-cur": "Your splice", "lg-in": "Your traits",
     "nomo-desc": "Three aligned scales showing trait 1, trait 2 and the spliced value for each roll from ×0.90 to ×1.10.",
     "h-reach": "Reach table", "h-reach-sub": "Same roll, three numbers. Read a row across.",
-    roll: "Roll",
+    roll: "Roll", pct: "Roll percentile",
     "reach-note": "On a curse a bigger number is a higher roll, so the harshest curse gives the best splice.",
     "h-all": "All recipes on this riven", "h-all-sub": "Ranges with both inputs as buffs, at the rank and layout above.",
     spliced: "Spliced", from: "From", "na-pool": (n) => `${n} can’t roll on this riven type`, "na-class": "Not offered for this weapon class",
@@ -586,7 +586,7 @@ const I18N = {
     "out-why-one": (n, w) => `至少這麼多，來自「${n}」的擲值 ×${w}。另一條也輸入吧：它擲值較高就以它為準。`,
     "out-span": (a, b) => `顯示值有四捨五入，實際可能是 ${a} 到 ${b}。`,
     "out-range": (a, b) => `這張紫卡的拼接範圍：${a} 到 ${b}`,
-    "h-map": "擲值對照圖", "h-map-sub": "三條刻度依擲值對齊，滑過或拖曳即可橫向讀值。",
+    "h-map": "擲值對照圖", "h-map-sub": "三條刻度依擲值對齊，刻度標在第 0、25、50、75、99 百分位。滑過或拖曳即可橫向讀值。",
     target: "目標拼接值",
     "target-out": (p, a, q, b) => `需要「<span class="c1">${p}</span>」達到 <b>${a}</b> 以上，或「<span class="c2">${q}</span>」達到 <b>${b}</b> 以上（以絕對值計）。`,
     "target-any": (m) => `任何擲值都達得到。最低拼接值是 <b>${m}</b>。`,
@@ -596,7 +596,7 @@ const I18N = {
     "lg-cur": "你的拼接", "lg-in": "你的屬性",
     "nomo-desc": "三條對齊的刻度，顯示擲值 ×0.90 到 ×1.10 時屬性一、屬性二與拼接後的數值。",
     "h-reach": "對照表", "h-reach-sub": "同一個擲值對應的三個數字，橫著讀。",
-    roll: "擲值",
+    roll: "擲值", pct: "擲值百分位",
     "reach-note": "負面屬性數字越大代表擲值越高，所以最重的負面反而拼得最好。",
     "h-all": "這張紫卡的所有配方", "h-all-sub": "兩條輸入都當正面計算，套用上方的等級與條數。",
     spliced: "拼接", from: "來源", "na-pool": (n) => `這種紫卡不會出現「${n}」`, "na-class": "這個武器類別沒有這條配方",
@@ -893,15 +893,8 @@ function el(tag, attrs, text) {
   if (text != null) n.textContent = text;
   return n;
 }
-function niceTicks(a, b, target) {
-  const lo = Math.min(a, b), hi = Math.max(a, b), span = hi - lo || 1;
-  const raw = span / target, p = Math.pow(10, Math.floor(Math.log10(raw)));
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * p).find((s) => s >= raw);
-  const out = [];
-  for (let v = Math.ceil(lo / step - 1e-9) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10));
-  return { ticks: out, step };
-}
 const NOMO = { L: 168, R: 736, rows: [86, 146, 206] };
+const PCTS = [0, 0.25, 0.5, 0.75, 0.99];  // 對照圖的百分位刻度
 const xOf = (u) => NOMO.L + (NOMO.R - NOMO.L) * u;
 let lastC = null, ghostU = null;
 function renderNomo(c, need) {
@@ -913,14 +906,16 @@ function renderNomo(c, need) {
     { cls: 3, sc: c.outSc, unit: c.outUnit, name: nm(SPLICED[c.r.out]), sub: tr("spliced") },
   ];
   // 頂端：擲值倍率軸
+  // 擲值是均勻分布，第 p 百分位就是 u = p%；頂軸標百分位，下方附擲值倍率
   const yTop = 30;
-  svg.appendChild(el("text", { x: 12, y: yTop + 4, class: "sub" }, tr("roll")));
+  svg.appendChild(el("text", { x: 12, y: yTop + 4, class: "sub" }, tr("pct")));
   svg.appendChild(el("line", { x1: NOMO.L, x2: NOMO.R, y1: yTop, y2: yTop, class: "base" }));
-  for (const w of [0.9, 0.95, 1.0, 1.05, 1.1]) {
-    const x = xOf((w - 0.9) / 0.2);
+  for (const u of PCTS) {
+    const x = xOf(u);
     svg.appendChild(el("line", { x1: x, x2: x, y1: yTop - 4, y2: yTop + 4, class: "tick" }));
-    svg.appendChild(el("text", { x, y: yTop - 9, "text-anchor": "middle" }, "×" + w.toFixed(2)));
-    svg.appendChild(el("line", { x1: x, x2: x, y1: yTop + 8, y2: NOMO.rows[2] + 4, class: "grid" }));
+    svg.appendChild(el("text", { x, y: yTop - 9, "text-anchor": "middle" }, "p" + Math.round(u * 100)));
+    svg.appendChild(el("text", { x, y: yTop + 17, "text-anchor": "middle", class: "sub" }, "×" + wOf(u).toFixed(3)));
+    svg.appendChild(el("line", { x1: x, x2: x, y1: yTop + 22, y2: NOMO.rows[2] + 4, class: "grid" }));
   }
   // 游標線放在刻度文字之下，文字的描邊才蓋得住
   const under = el("g", {});
@@ -930,13 +925,11 @@ function renderNomo(c, need) {
     svg.appendChild(el("text", { x: 12, y: y - 2, class: "lab" }, row.name.length > 22 ? row.name.slice(0, 21) + "…" : row.name));
     svg.appendChild(el("text", { x: 12, y: y + 13, class: "sub" }, row.sub));
     svg.appendChild(el("line", { x1: NOMO.L, x2: NOMO.R, y1: y, y2: y, class: `band band${row.cls}` }));
-    const d0 = dispNum(row.unit, val(row.sc, 0.9)), d1 = dispNum(row.unit, val(row.sc, 1.1));
-    const { ticks, step } = niceTicks(d0, d1, 6);
-    const dec = (String(+step.toFixed(10)).split(".")[1] || "").length;
-    for (const d of ticks) {
-      const x = xOf((d - d0) / (d1 - d0));
+    // 刻度固定在 p0 / p25 / p50 / p75 / p99，標出該百分位的實際數值
+    for (const u of PCTS) {
+      const x = xOf(u);
       svg.appendChild(el("line", { x1: x, x2: x, y1: y - 5, y2: y + 5, class: "tick" }));
-      svg.appendChild(el("text", { x, y: y + 19, "text-anchor": "middle" }, row.unit === "x" ? "×" + d.toFixed(Math.max(2, dec)) : d.toFixed(dec)));
+      svg.appendChild(el("text", { x, y: y + 19, "text-anchor": "middle" }, fmt(row.unit, val(row.sc, wOf(u)), true)));
     }
     row.y = y;
   }
@@ -972,7 +965,7 @@ function drawGhost() {
   if (ghostU == null) return;
   const x = xOf(ghostU), { rows } = lastC;
   g.appendChild(el("line", { x1: x, x2: x, y1: 26, y2: NOMO.rows[2] + 6, class: "ghost" }));
-  g.appendChild(el("text", { x, y: 52, "text-anchor": ghostU > 0.85 ? "end" : ghostU < 0.15 ? "start" : "middle", class: "gval" }, "×" + wOf(ghostU).toFixed(3)));
+  g.appendChild(el("text", { x: x + (ghostU > 0.85 ? -8 : 8), y: 64, "text-anchor": ghostU > 0.85 ? "end" : "start", class: "gval" }, `p${Math.round(ghostU * 100)} · ×${wOf(ghostU).toFixed(3)}`));
   for (const row of rows) {
     g.appendChild(el("circle", { cx: x, cy: row.y, r: 4, class: `d${row.cls}` }));
     const t = el("text", { x: x + (ghostU > 0.85 ? -8 : 8), y: row.y - 9, "text-anchor": ghostU > 0.85 ? "end" : "start", class: "val" },
