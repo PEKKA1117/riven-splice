@@ -352,7 +352,7 @@ const RIVEN_TYPES = [
   { id: "LotusModularMeleeRandomModRare",  en: "Zaw",     zh: "Zaw",       col: 4 },
 ];
 
-// 一般屬性基礎係數 b（ExportUpgrades.json），依 RIVEN_TYPES 順序；null = 該類型不會出現
+// 一般屬性基礎係數 b（Riven Mods wiki「Ordinary attribute base coefficients」），依 RIVEN_TYPES 順序；null = 該類型不會出現（wiki 表中的「–」）
 const _5 = (v) => [v, v, v, v, v, null, null];
 const _M = (v) => [null, null, null, null, null, v, v];
 const BASE = {
@@ -396,7 +396,7 @@ const BASE = {
 };
 
 // 屬性名稱（中文取自遊戲官方繁中字串）；unit：% 百分比、x 派系倍率、s 秒、m 公尺；
-// pos = 只會是正面、curseOnly = 只會是負面，依 ExportUpgrades.json 的 canBeCurse / canBeBuff（wiki 的註記把遠程「傷害」誤標成只會是正面）
+// pos = 只會是正面、curseOnly = 只會是負面，依同一張 wiki 表的註記 1 / 3（「Damage / Melee Damage」的註記 1 標在近戰傷害後，遠程傷害正負皆可）
 const TRAITS = {
   WeaponClipMaxMod:              { en: "Magazine Capacity", zh: "彈匣容量", unit: "%" },
   WeaponReloadSpeedMod:          { en: "Reload Speed", zh: "裝填速度", unit: "%" },
@@ -546,7 +546,7 @@ const I18N = {
     "ranges-note": `<p>Ranges run from roll ×0.90 to ×1.10. Heat, Cold, Toxin, Electricity, Melee Damage, Punch Through, Initial Combo and Additional Combo Count Chance only roll as buffs; Chance to Gain Combo Count only rolls as a curse.</p><p>Elemental, physical and faction traits with the same value share one row. Ranged Puncture is a hair lower than Impact and Slash (b 0.01333 vs 0.013333), so the physical row shows the widest range of the three. Physical traits usually need the weapon to have more than 25% of that damage type.</p><p>Highlighted rows are the recipe picked on the Splice tab. Tick the box on the left to pin a row to the top; pins are remembered.</p>`,
     foot: `<p><b>Formula.</b> <code>v = b × 10 × (rank + 1) × D × L × W</code>, computed step by step in 32-bit floats. D = 1.2 for every weapon since disposition was retired in 44.1.3. L is <span class="nw">0.99 / 1.2375 / 0.75 / 0.9375</span> for a buff on a <span class="nw">2+0 / 2+1 / 3+0 / 3+1</span> riven, and <span class="nw">−0.495 / −0.75</span> for the curse on <span class="nw">2+1 / 3+1</span>. <span class="nw">W = 0.9 + 0.2u</span> runs from 0.90 to 1.10. A spliced trait takes the larger W of the two consumed traits and uses the buff L with its own <code>b</code>. The buff/curse layout never changes when you splice.</p>
 <p><b>Rounding.</b> The game rounds what it shows, so a typed value maps to a narrow band of rolls. When that band changes the spliced number, the card shows the band. The game also computes in 32-bit floats; expect the last digit to differ now and then.</p>
-<p><b>Sources.</b> Recipes and spliced base coefficients from the <a href="https://wiki.warframe.com/w/Riven_Mods#Spliced_Values" target="_blank" rel="noopener">Warframe wiki</a>. Trait coefficients and trait pools from DE’s public export via <a href="https://browse.wf/rivencalc" target="_blank" rel="noopener">browse.wf</a>. Vintage companion traits and per-weapon physical damage limits are not modelled.</p>`,
+<p><b>Sources.</b> Formula, recipes, trait coefficients and trait pools from the <a href="https://wiki.warframe.com/w/Riven_Mods#Base_Values" target="_blank" rel="noopener">Warframe wiki</a>. Vintage companion traits and per-weapon physical damage limits are not modelled.</p>`,
   },
   zh: {
     eyebrow: "Warframe · 紫卡拼接器",
@@ -597,7 +597,7 @@ const I18N = {
     "ranges-note": `<p>範圍是擲值 ×0.90 到 ×1.10。火焰、冰凍、毒素、電擊、近戰傷害、穿透、起始連擊數、額外連擊數機率只會是正面；機率獲得連擊數只會是負面。</p><p>數值相同的元素、物理、派系傷害各併成一列。遠程的穿刺係數比衝擊、切割略低（b 0.01333 對 0.013333），所以物理那列的範圍取三者最寬。物理傷害通常要武器該傷害類型超過 25% 才洗得出來。</p><p>標色的列是「拼接計算」分頁目前選的配方。勾選左側方塊可把該列置頂，會記住。</p>`,
     foot: `<p><b>公式。</b><code>v = b × 10 × (等級 + 1) × D × L × W</code>，以 32 位元浮點逐步計算。傾向在 44.1.3 退役後，所有武器 D = 1.2。正面的 L 在 <span class="nw">2+0 / 2+1 / 3+0 / 3+1</span> 時為 <span class="nw">0.99 / 1.2375 / 0.75 / 0.9375</span>，負面在 <span class="nw">2+1 / 3+1</span> 時為 <span class="nw">−0.495 / −0.75</span>。<span class="nw">W = 0.9 + 0.2u</span>，介於 0.90 與 1.10。拼接屬性取兩條被消耗屬性中較大的 W，以自己的 <code>b</code> 套正面的 L。拼接不會改變正負面配置。</p>
 <p><b>四捨五入。</b>遊戲顯示的數值有四捨五入，所以輸入值對應的是一小段擲值；這段範圍若會影響拼接結果，卡片會標出來。遊戲用 32 位元浮點運算，最後一位偶爾會差一點。</p>
-<p><b>來源。</b>配方與拼接基礎係數取自 <a href="https://wiki.warframe.com/w/Riven_Mods#Spliced_Values" target="_blank" rel="noopener">Warframe wiki</a>；屬性係數與各類型可出現的屬性取自 DE 公開匯出資料（經由 <a href="https://browse.wf/rivencalc" target="_blank" rel="noopener">browse.wf</a>）。未處理同伴紫卡的舊版屬性，以及個別武器的物理傷害限制。</p>`,
+<p><b>來源。</b>公式、配方、屬性係數與各類型可出現的屬性皆取自 <a href="https://wiki.warframe.com/w/Riven_Mods#Base_Values" target="_blank" rel="noopener">Warframe wiki</a>。未處理同伴紫卡的舊版屬性，以及個別武器的物理傷害限制。</p>`,
   },
 };
 let lang = "zh";  // 預設正體中文；只有使用者按過語言鈕才記住
