@@ -187,7 +187,7 @@ select { font-family: var(--f-body); }
 .target-out { font-size: 14px; }
 .target-out b { font-family: var(--f-mono); font-weight: 500; }
 .scroll { overflow-x: auto; }
-#nomo { display: block; width: 100%; min-width: 640px; height: auto; touch-action: pan-y; }
+#nomo { display: block; width: 100%; min-width: 640px; height: auto; }
 #nomo text { font-family: var(--f-mono); font-size: 11px; fill: var(--ink2); paint-order: stroke; stroke: var(--raised); stroke-width: 4px; stroke-linejoin: round; }
 #nomo .lab { font-family: var(--f-body); font-size: 12.5px; font-weight: 600; fill: var(--ink); }
 #nomo .sub { font-family: var(--f-body); font-size: 11px; fill: var(--ink3); }
@@ -544,7 +544,7 @@ const I18N = {
     "out-why-one": (n, w) => `At least this, from ${n}’s roll ×${w}. Enter the other trait too: a higher roll there wins.`,
     "out-span": (a, b) => `Rounding of the shown values allows ${a} to ${b}.`,
     "out-range": (a, b) => `Spliced range on this riven: ${a} to ${b}`,
-    "h-map": "Roll map", "h-map-sub": "All three scales line up by roll, ticked at the 0th, 25th, 50th, 75th and 100th percentile, so the ends are the min and max. Hover or drag to read across.",
+    "h-map": "Roll map", "h-map-sub": "All three scales line up by roll, ticked at the 0th, 25th, 50th, 75th and 100th percentile, so the ends are the min and max. Hover or tap to read across.",
     target: "Target spliced value",
     "target-out": (p, a, q, b) => `Needs <span class="c1">${p}</span> at <b>${a}</b> or beyond, or <span class="c2">${q}</span> at <b>${b}</b> or beyond.`,
     "target-any": (m) => `Every roll reaches it. The lowest possible splice is <b>${m}</b>.`,
@@ -595,7 +595,7 @@ const I18N = {
     "out-why-one": (n, w) => `至少這麼多，來自「${n}」的擲值 ×${w}。另一條也輸入吧：它擲值較高就以它為準。`,
     "out-span": (a, b) => `顯示值有四捨五入，實際可能是 ${a} 到 ${b}。`,
     "out-range": (a, b) => `這張紫卡的拼接範圍：${a} 到 ${b}`,
-    "h-map": "擲值對照圖", "h-map-sub": "三條刻度依擲值對齊，刻度標在第 0、25、50、75、100 百分位，兩端就是最小和最大值。滑過或拖曳即可橫向讀值。",
+    "h-map": "擲值對照圖", "h-map-sub": "三條刻度依擲值對齊，刻度標在第 0、25、50、75、100 百分位，兩端就是最小和最大值。滑過或點按即可讀值。",
     target: "目標拼接值",
     "target-out": (p, a, q, b) => `需要「<span class="c1">${p}</span>」達到 <b>${a}</b> 以上，或「<span class="c2">${q}</span>」達到 <b>${b}</b> 以上（以絕對值計）。`,
     "target-any": (m) => `任何擲值都達得到。最低拼接值是 <b>${m}</b>。`,
@@ -1217,7 +1217,10 @@ function init() {
   const svg = $("nomo");
   svg.addEventListener("pointermove", nomoPointer);
   svg.addEventListener("pointerdown", nomoPointer);
-  svg.addEventListener("pointerleave", () => { ghostU = null; drawGhost(); });
+  // 觸控交給外層橫向捲動；點按的讀值線留著，滑鼠移出或觸控開始捲動才清掉
+  const clearGhost = () => { ghostU = null; drawGhost(); };
+  svg.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") clearGhost(); });
+  svg.addEventListener("pointercancel", clearGhost);
 }
 init();
 </script>
