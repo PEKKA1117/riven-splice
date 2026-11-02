@@ -13,7 +13,7 @@ A calculator for Warframe's Riven Splicer. Enter the two traits on your riven to
 - 拼接不會重新擲值：拼接屬性沿用兩條被消耗屬性中擲值較好的那一條，再套上自己的基礎係數。
 - 負面屬性的數字越大代表擲值越高，拼出來反而越好。
 - 公式照 [wiki Riven Mods](https://wiki.warframe.com/w/Riven_Mods#Spliced_Values)：`v = b × 10 × (rank + 1) × 1.2 × L × W`，以 32 位元浮點逐步計算。傾向自 44.1.3 起固定為 1.2×。
-- 一般屬性係數、各紫卡類型可出現的屬性與只會正面/負面的註記，同樣取自 [wiki Riven Mods](https://wiki.warframe.com/w/Riven_Mods#Base_Values) 的表格；wiki 是唯一資料來源。
+- 一般屬性係數、各紫卡類型可出現的屬性與只會正面/負面的註記，同樣取自 [wiki Riven Mods](https://wiki.warframe.com/w/Riven_Mods#Overview_Table) 的表格；wiki 是唯一資料來源。
 
 ## 開發
 
