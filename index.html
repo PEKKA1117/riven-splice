@@ -117,6 +117,22 @@ select { font-family: var(--f-body); }
   .tbl td.pin input, .tbl td.pin input::after { transition: background-color .12s, border-color .12s, transform .12s; }
 }
 .tbl tr.pinned td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+/* 表格內的擲值查詢：輸入框縮小，結果放在輸入框下方，窄螢幕不用橫向捲動也看得到 */
+.tbl td.rollc { min-width: 11.5em; white-space: nowrap; }
+/* 名稱可換行，空間留給輸入框和「可拼接成」 */
+#ranges td:nth-child(2) { white-space: normal; min-width: 7em; }
+.tbl .inrow input { height: 30px; font-size: 14px; padding: 0 46px 0 8px; }
+.tbl .inrow .unit { right: 28px; font-size: 13px; }
+.tbl .inrow.pre input { padding-left: 24px; padding-right: 28px; }
+.tbl .inrow.pre .unit { left: 8px; right: auto; }
+.tbl .inrow .clr { right: 3px; width: 22px; height: 22px; font-size: 12px; }
+.tbl .rollclr { border: 0; background: none; padding: 0; margin-left: 6px; color: var(--accent); font: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.rollout { font-size: 12.5px; color: var(--ink2); margin-top: 3px; }
+.rollout:empty { display: none; }
+.rollout.err { color: var(--bad); }
+.rollout b { color: var(--ink); }
+.rollout .lock { color: var(--s3); margin-left: 6px; }
+.tbl tr.lock td.rollc { box-shadow: inset 3px 0 0 var(--s3); }
 .tbl tr.pin-end td { border-bottom: 1px solid var(--rule2); }
 
 /* 配方晶片 */
@@ -541,9 +557,11 @@ const I18N = {
     "h-ranges": "Trait ranges",
     "ranges-sub": (type, k) => `Every trait a ${type} riven can roll, at rank and layout above (${k}).`,
     pin: "Pin", "pin-label": (n) => `Pin ${n} to the top`,
+    "roll-val": "Your value", "roll-val-label": (n) => `Value of ${n} on your riven`,
+    "roll-oor": "Out of range", "roll-lock": "Lock this", "roll-tie": "Tied",
     attr: "Trait", "buff-r": "As buff", "curse-r": "As curse", "splice-to": "Splices into", "b-col": "Base b",
     "no-curse": "No curse slot",
-    "ranges-note": `<p>Ranges run from roll ×0.90 to ×1.10. Heat, Cold, Toxin, Electricity, Melee Damage, Punch Through, Initial Combo and Additional Combo Count Chance only roll as buffs; Chance to Gain Combo Count only rolls as a curse.</p><p>Elemental, physical and faction traits with the same value share one row. Ranged Puncture is a hair lower than Impact and Slash (b 0.01333 vs 0.013333), so the physical row shows the widest range of the three. Physical traits usually need the weapon to have more than 25% of that damage type.</p><p>Highlighted rows are the recipe picked on the Splice tab. Tick the box on the left to pin a row to the top; pins are remembered.</p>`,
+    "ranges-note": `<p>Ranges run from roll ×0.90 to ×1.10. Heat, Cold, Toxin, Electricity, Melee Damage, Punch Through, Initial Combo and Additional Combo Count Chance only roll as buffs; Chance to Gain Combo Count only rolls as a curse.</p><p>Elemental, physical and faction traits with the same value share one row. Ranged Puncture is a hair lower than Impact and Slash (b 0.01333 vs 0.013333), so the physical row shows the widest range of the three. Physical traits usually need the weapon to have more than 25% of that damage type.</p><p>Highlighted rows are the recipe picked on the Splice tab. Tick the box on the left to pin a row to the top; pins are remembered.</p><p>Rolled two good traits that don’t splice together? Type each number in Your value to read its roll percentile. The value alone tells a buff from a curse, using the rank and layout above. With two or more filled in, the highest roll is marked as the one to lock, since a splice keeps the better roll. On a curse a bigger number is a higher roll.</p>`,
     foot: `<p><b>Formula.</b> <code>v = b × 10 × (rank + 1) × D × L × W</code>, computed step by step in 32-bit floats. D = 1.2 for every weapon since disposition was retired in 44.1.3. L is <span class="nw">0.99 / 1.2375 / 0.75 / 0.9375</span> for a buff on a <span class="nw">2+0 / 2+1 / 3+0 / 3+1</span> riven, and <span class="nw">−0.495 / −0.75</span> for the curse on <span class="nw">2+1 / 3+1</span>. <span class="nw">W = 0.9 + 0.2u</span> runs from 0.90 to 1.10. A spliced trait takes the larger W of the two consumed traits and uses the buff L with its own <code>b</code>. The buff/curse layout never changes when you splice.</p>
 <p><b>Rounding.</b> The game rounds what it shows, so a typed value maps to a narrow band of rolls. When that band changes the spliced number, the card shows the band. The game also computes in 32-bit floats; expect the last digit to differ now and then.</p>
 <p><b>Sources.</b> Formula, recipes, trait coefficients and trait pools from the <a href="https://wiki.warframe.com/w/Riven_Mods#Overview_Table" target="_blank" rel="noopener">Warframe wiki</a>. Vintage companion traits and per-weapon physical damage limits are not modelled.</p>`,
@@ -592,9 +610,11 @@ const I18N = {
     "h-ranges": "屬性範圍",
     "ranges-sub": (type, k) => `${type}紫卡可能出現的所有屬性，套用上方的等級與條數（${k}）。`,
     pin: "置頂", "pin-label": (n) => `把「${n}」置頂`,
+    "roll-val": "你的數值", "roll-val-label": (n) => `紫卡上「${n}」的數值`,
+    "roll-oor": "超出範圍", "roll-lock": "鎖這條", "roll-tie": "同分",
     attr: "屬性", "buff-r": "正面範圍", "curse-r": "負面範圍", "splice-to": "可拼接成", "b-col": "基礎係數 b",
     "no-curse": "沒有負面槽",
-    "ranges-note": `<p>範圍是擲值 ×0.90 到 ×1.10。火焰、冰凍、毒素、電擊、近戰傷害、穿透、起始連擊數、額外連擊數機率只會是正面；機率獲得連擊數只會是負面。</p><p>數值相同的元素、物理、派系傷害各併成一列。遠程的穿刺係數比衝擊、切割略低（b 0.01333 對 0.013333），所以物理那列的範圍取三者最寬。物理傷害通常要武器該傷害類型超過 25% 才洗得出來。</p><p>標色的列是「拼接計算」分頁目前選的配方。勾選左側方塊可把該列置頂，會記住。</p>`,
+    "ranges-note": `<p>範圍是擲值 ×0.90 到 ×1.10。火焰、冰凍、毒素、電擊、近戰傷害、穿透、起始連擊數、額外連擊數機率只會是正面；機率獲得連擊數只會是負面。</p><p>數值相同的元素、物理、派系傷害各併成一列。遠程的穿刺係數比衝擊、切割略低（b 0.01333 對 0.013333），所以物理那列的範圍取三者最寬。物理傷害通常要武器該傷害類型超過 25% 才洗得出來。</p><p>標色的列是「拼接計算」分頁目前選的配方。勾選左側方塊可把該列置頂，會記住。</p><p>洗出兩條好屬性、但兩條拼不起來時，在「你的數值」輸入紫卡上的數字就能看擲值百分位。會依上方的等級與條數，從數值自動判斷是正面還是負面。填了兩條以上時，擲值最高的那條會標出來當鎖定建議，因為拼接保留的是較好的擲值。負面屬性的數字越大代表擲值越高。</p>`,
     foot: `<p><b>公式。</b><code>v = b × 10 × (等級 + 1) × D × L × W</code>，以 32 位元浮點逐步計算。傾向在 44.1.3 退役後，所有武器 D = 1.2。正面的 L 在 <span class="nw">2+0 / 2+1 / 3+0 / 3+1</span> 時為 <span class="nw">0.99 / 1.2375 / 0.75 / 0.9375</span>，負面在 <span class="nw">2+1 / 3+1</span> 時為 <span class="nw">−0.495 / −0.75</span>。<span class="nw">W = 0.9 + 0.2u</span>，介於 0.90 與 1.10。拼接屬性取兩條被消耗屬性中較大的 W，以自己的 <code>b</code> 套正面的 L。拼接不會改變正負面配置。</p>
 <p><b>四捨五入。</b>遊戲顯示的數值有四捨五入，所以輸入值對應的是一小段擲值；這段範圍若會影響拼接結果，卡片會標出來。遊戲用 32 位元浮點運算，最後一位偶爾會差一點。</p>
 <p><b>來源。</b>公式、配方、屬性係數與各類型可出現的屬性皆取自 <a href="https://wiki.warframe.com/w/Riven_Mods#Overview_Table" target="_blank" rel="noopener">Warframe wiki</a>。未處理同伴紫卡的舊版屬性，以及個別武器的物理傷害限制。</p>`,
@@ -631,7 +651,7 @@ const STORE_KEY = "riven-splice-v2";
 const state = {
   type: 0, lvl: 8, buffs: 2, curses: 1,
   recipe: "wpcrit-ms", roles: ["buff", "buff"], vals: ["", ""], target: "",
-  example: true, tab: "splice", pins: [],
+  example: true, tab: "splice", pins: [], rolls: {},
 };
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* 私密視窗等情況 */ }
@@ -690,6 +710,8 @@ function fmt(unit, v, signed) {
   return sign + d.toFixed(1) + (unit === "%" ? "%" : unit === "n" ? "" : unit);
 }
 const halfStep = (unit) => (unit === "%" ? 0.0005 : unit === "x" ? 0.005 : 0.05);
+// 派系輸入是倍率還是百分比：倍率實際落在 ×0.55–×1.74，百分比寫法最小約 2.7，以 2 為界不會混淆
+const isMult = (n) => n >= 0.3 && n <= 2;
 // 輸入字串 → 數值的絕對值；派系屬性接受 ×1.12 或 0.88 這種倍率，也接受百分比
 function parseMag(unit, str) {
   const s = String(str).replace(/[×x%,\s+]/gi, (c) => (c === "," ? "." : "")).trim();
@@ -697,21 +719,38 @@ function parseMag(unit, str) {
   const n = Number(s);
   if (!isFinite(n)) return NaN;
   if (unit === "%") return Math.abs(n) / 100;
-  if (unit === "x") return n >= 0.3 && n <= 1.7 ? Math.abs(n - 1) : Math.abs(n) / 100;
+  if (unit === "x") return isMult(n) ? Math.abs(n - 1) : Math.abs(n) / 100;
   return Math.abs(n);
 }
-// 讀出一條屬性的擲值區間 [lo, hi]（0..1），已扣掉顯示四捨五入的誤差
-function readTrait(i, tag, s) {
-  const unit = TRAITS[tag].unit;
-  const mag = parseMag(unit, state.vals[i]);
-  if (mag === null) return { empty: true };
-  if (Number.isNaN(mag)) return { bad: true };
-  const sc = Math.abs(traitScale(tag, state.roles[i], s));
-  const h = halfStep(unit);
+// 數值的絕對值 → 擲值區間 [lo, hi]（0..1），已扣掉顯示四捨五入的誤差
+function rollOf(mag, tag, role, s) {
+  const sc = Math.abs(traitScale(tag, role, s));
+  const h = halfStep(TRAITS[tag].unit);
   const uOf = (m) => (m / sc - 0.9) / 0.2;
   const lo = Math.max(0, uOf(Math.max(0, mag - h))), hi = Math.min(1, uOf(mag + h));
   if (lo > hi) return { out: true };
   return { lo, hi, u: Math.min(1, Math.max(0, uOf(mag))) };
+}
+function readTrait(i, tag, s) {
+  const mag = parseMag(TRAITS[tag].unit, state.vals[i]);
+  if (mag === null) return { empty: true };
+  if (Number.isNaN(mag)) return { bad: true };
+  return rollOf(mag, tag, state.roles[i], s);
+}
+// 輸入的是負面嗎：派系看倍率小於 1，其他看負號
+function typedCurse(unit, str) {
+  const n = Number(String(str).replace(/[×x%\s+]/gi, "").replace(",", "."));
+  return unit === "x" && isMult(n) ? n < 1 : n < 0;
+}
+// 屬性範圍表：不問正負面，從數值判斷。兩種範圍不重疊，只有 3+1 的小數值會因四捨五入同時符合，這時才看輸入的正負
+function readAnyRole(str, tag, s) {
+  const m = TRAITS[tag], mag = parseMag(m.unit, str);
+  if (mag === null) return { empty: true };
+  if (Number.isNaN(mag)) return { bad: true };
+  const roles = [...(m.curseOnly ? [] : ["buff"]), ...(m.pos || s.curses === 0 ? [] : ["curse"])];
+  const hits = roles.map((role) => ({ role, ...rollOf(mag, tag, role, s) })).filter((x) => !x.out);
+  if (!hits.length) return { out: true };
+  return hits.find((x) => x.role === (typedCurse(m.unit, str) ? "curse" : "buff")) ?? hits[0];
 }
 
 // ===== 畫面 =====
@@ -1079,10 +1118,40 @@ function renderRanges(c) {
       `<button type="button" class="pick" data-r="${id}">${nm(SPLICED[out])}</button>`).join(lang === "zh" ? "、" : ", ");
     const on = pins.has(it.key);
     const cls = [it.tags.some((x) => pick.has(x)) ? "sel" : "", on ? "pinned" : "", on && i === nPinned - 1 ? "pin-end" : ""].join(" ").trim();
-    return `<tr class="${cls}"><td class="pin"><input type="checkbox" class="pinbox" data-k="${it.key}" aria-label="${tr("pin-label", it.name)}"${on ? " checked" : ""}></td><td>${it.name}</td><td class="num">${buff}</td><td class="num">${curse}</td><td class="uses">${to}</td><td class="num b">${b}</td></tr>`;
+    return `<tr class="${cls}"><td class="pin"><input type="checkbox" class="pinbox" data-k="${it.key}" aria-label="${tr("pin-label", it.name)}"${on ? " checked" : ""}></td><td>${it.name}</td><td class="rollc"><div class="inrow${m.unit === "x" ? " pre" : ""}"><input type="text" class="rollin" id="roll-${it.key}" data-k="${it.key}" data-tag="${tag}" inputmode="decimal" autocomplete="off" aria-label="${tr("roll-val-label", it.name)}"${m.unit === "x" ? ' placeholder="1.12"' : ""}><span class="unit">${m.unit === "x" ? "×" : m.unit === "n" ? "" : m.unit}</span><button type="button" class="clr" data-for="roll-${it.key}" aria-label="${tr("clear")}" title="${tr("clear")}" hidden>✕</button></div><div class="rollout"></div></td><td class="num">${buff}</td><td class="num">${curse}</td><td class="uses">${to}</td><td class="num b">${b}</td></tr>`;
   });
-  $("ranges").innerHTML = `<thead><tr><th class="pin">${tr("pin")}</th><th>${tr("attr")}</th><th class="num">${tr("buff-r")}</th><th class="num">${tr("curse-r")}</th><th>${tr("splice-to")}</th><th class="num b">${tr("b-col")}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  $("ranges").innerHTML = `<thead><tr><th class="pin">${tr("pin")}</th><th>${tr("attr")}</th><th>${tr("roll-val")}<button type="button" class="rollclr" id="rolls-clear" hidden>${tr("clear")}</button></th><th class="num">${tr("buff-r")}</th><th class="num">${tr("curse-r")}</th><th>${tr("splice-to")}</th><th class="num b">${tr("b-col")}</th></tr></thead><tbody>${rows.join("")}</tbody>`;
   $("ranges-sub").textContent = tr("ranges-sub", nm(RIVEN_TYPES[t]), `${s.lvl} · ${layoutKey(s)}`);
+  renderRolls();
+}
+// 只更新輸入框以外的部分：打字時不能重建表格，否則會掉焦點
+function renderRolls() {
+  const s = state;
+  const rows = [...$("ranges").querySelectorAll(".rollin")].map((inp) => {
+    const str = s.rolls[inp.dataset.k] ?? "";
+    if (document.activeElement !== inp) inp.value = str;
+    inp.parentElement.querySelector(".clr").hidden = !str;
+    return { str, row: inp.closest("tr"), box: inp.closest("td").querySelector(".rollout"), rd: readAnyRole(str, inp.dataset.tag, s) };
+  });
+  // 四捨五入區間重疊的列分不出高低，一起算同分
+  const read = rows.filter((x) => x.rd.u != null);
+  const top = read.length > 1 ? read.reduce((a, b) => (b.rd.u > a.rd.u ? b : a)) : null;
+  const best = top ? read.filter((x) => x.rd.hi >= top.rd.lo) : [];
+  for (const x of rows) {
+    const { rd, box } = x, on = best.includes(x);
+    x.row.classList.toggle("lock", on && best.length === 1);
+    box.className = rd.bad || rd.out ? "rollout err" : "rollout";
+    if (rd.empty) box.textContent = "";
+    else if (rd.bad) box.textContent = tr("roll-bad");
+    else if (rd.out) box.textContent = tr("roll-oor");
+    else {
+      const a = Math.round(rd.lo * 100), b = Math.round(rd.hi * 100);
+      const p = b - a >= 2 ? `p${a}–p${b}` : `p${Math.round(rd.u * 100)}`;
+      box.innerHTML = `<b>${p}</b> ×${wOf(rd.u).toFixed(3)} · ${tr(rd.role)}`
+        + (on ? `<b class="lock">${tr(best.length === 1 ? "roll-lock" : "roll-tie")}</b>` : "");
+    }
+  }
+  $("rolls-clear").hidden = !rows.some((x) => x.str);
 }
 function showTab() {
   if (state.tab !== "ranges") state.tab = "splice";
@@ -1157,8 +1226,14 @@ function init() {
     renderRanges(compute()); save();
     $("ranges").querySelector(`.pinbox[data-k="${k}"]`)?.focus();
   });
+  $("ranges").addEventListener("input", (e) => {
+    const inp = e.target.closest(".rollin"); if (!inp) return;
+    if (inp.value) state.rolls[inp.dataset.k] = inp.value; else delete state.rolls[inp.dataset.k];
+    renderRolls(); save();
+  });
   // 屬性範圍表的拼接屬性連結：切回拼接計算並選好配方
   $("ranges").addEventListener("click", (e) => {
+    if (e.target.id === "rolls-clear") { state.rolls = {}; renderRolls(); save(); return; }
     const b = e.target.closest(".pick"); if (!b) return;
     state.tab = "splice";
     selectRecipe(b.dataset.r);
