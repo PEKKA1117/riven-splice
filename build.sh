@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
-# 把 artifact 用的頁面片段 index.html 包成完整的 HTML 文件，輸出到 docs/ 給 GitHub Pages
-# （artifact 發布時平台會自動補 doctype/head/重置樣式；獨立網站要自己補）
+# 型別檢查 src/、打包成 docs/main.js、theme-init.js、style.css，
+# 再把 artifact 用的頁面片段 index.html 包成完整的 HTML 文件，輸出到 docs/ 給 GitHub Pages
+# （artifact 發布時平台會自動補 doctype/head；獨立網站要自己補）
 set -euo pipefail
 cd "$(dirname "$0")"
 
 SITE="https://pekka1117.github.io/riven-splice/"
 mkdir -p docs
+
+[[ -d node_modules ]] || npm ci
+node_modules/.bin/tsc
+# iife 而非 ESM：module script 不能從 file:// 載入；--charset=utf8 保留中文不轉成 \uXXXX
+node_modules/.bin/esbuild src/main.ts src/theme-init.ts src/style.css \
+  --bundle --format=iife --target=es2022 --charset=utf8 --outdir=docs --log-level=warning
 
 {
 cat <<EOF
@@ -23,12 +30,6 @@ cat <<EOF
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<style>
-:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-body { margin: 0; }
-img { max-width: 100%; }
-[hidden] { display: none !important; }
-</style>
 </head>
 <body>
 EOF
@@ -52,4 +53,4 @@ if command -v chromium >/dev/null; then
     --screenshot="$PWD/docs/apple-touch-icon.png" "file://$tmp/i.html" 2>/dev/null
   rm -rf "$tmp"
 fi
-echo "docs/index.html: $(wc -c < docs/index.html) bytes"
+wc -c docs/index.html docs/main.js docs/theme-init.js docs/style.css

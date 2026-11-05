@@ -17,4 +17,13 @@ A calculator for Warframe's Riven Splicer. Enter the two traits on your riven to
 
 ## 開發
 
-單一檔案、無相依套件。`index.html` 是頁面本體，`./build.sh` 會把它包成完整文件輸出到 `docs/`（GitHub Pages 從 `main` 分支的 `/docs` 發布）。
+執行時無相依套件；TypeScript 與 esbuild 只在建置時使用。
+
+- `index.html`：頁面 markup，是沒有 doctype/head 的片段，不含內嵌 script 與 style
+- `src/style.css`：樣式
+- `src/main.ts`：進入點與事件；`render.ts`、`nomo.ts`、`ranges.ts` 負責畫面，`calc.ts` 是不碰 DOM 的計算，`data.ts` 是 wiki 資料，`i18n.ts` 是介面文字
+- `src/theme-init.ts`：獨立打包的阻塞式腳本，在畫面繪製前套用主題，避免閃白
+
+`./build.sh` 會先跑 `tsc` 型別檢查，再用 esbuild 打包，並把 `index.html` 包成完整文件，全部輸出到 `docs/`（GitHub Pages 從 `main` 分支的 `/docs` 發布）。第一次執行會自動 `npm ci`。
+
+`index.html` 引用的 `main.js`、`theme-init.js`、`style.css` 只存在於 `docs/`，所以要開 `docs/index.html` 才看得到頁面。發布 artifact 時，這三個檔案要跟 `index.html` 一起帶上。
