@@ -1,6 +1,7 @@
 {
   "name": "riven-splice",
   "private": true,
+  "license": "CC-BY-4.0",
   "type": "module",
   "scripts": {
     "build": "./build.sh",

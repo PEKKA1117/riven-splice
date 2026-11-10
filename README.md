@@ -27,3 +27,18 @@ A calculator for Warframe's Riven Splicer. Enter the two traits on your riven to
 `./build.sh` 會先跑 `tsc` 型別檢查，再用 esbuild 打包，並把 `index.html` 包成完整文件，全部輸出到 `docs/`（GitHub Pages 從 `main` 分支的 `/docs` 發布）。第一次執行會自動 `npm ci`。
 
 `index.html` 引用的 `main.js`、`theme-init.js`、`style.css` 只存在於 `docs/`，所以要開 `docs/index.html` 才看得到頁面。發布 artifact 時，這三個檔案要跟 `index.html` 一起帶上。
+
+## 授權 · License
+
+© 2026 PEKKA，以 [CC BY 4.0](LICENSE)（[摘要](https://creativecommons.org/licenses/by/4.0/deed.zh-hant)）授權。可以自由轉載、修改、商用，但散佈原版或改作時**必須**：
+
+1. 標示作者 **PEKKA**，並附上原作連結（下方 repo 或網頁擇一，放在使用者看得到的地方，例如頁尾）；
+2. 註明以 CC BY 4.0 授權並附授權連結；
+3. 若有修改，註明已修改。
+
+建議寫法：`基於 PEKKA 的 <a href="https://pekka1117.github.io/riven-splice/">riven-splice</a>（CC BY 4.0），已修改`
+
+© 2026 PEKKA, licensed under [CC BY 4.0](LICENSE). You may share, adapt and use this commercially, but any redistribution or adaptation **must** credit **PEKKA** with a visible link to the original (the repo or the page below, e.g. in your footer), link the license, and say whether you changed it.
+
+- https://github.com/PEKKA1117/riven-splice
+- https://pekka1117.github.io/riven-splice/
