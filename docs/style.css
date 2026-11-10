@@ -880,3 +880,88 @@ a {
     transition: background-color .12s, border-color .12s;
   }
 }
+.sister {
+  --sis-bg: #FFFFFF;
+  --sis-ink: #1D1416;
+  --sis-ink2: #594B4E;
+  --sis-rule: #DDD2D3;
+  --sis: #B0142F;
+  --sis-soft: #F7DDE1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme=light]) .sister {
+    --sis-bg: #1D1517;
+    --sis-ink: #EFE4E5;
+    --sis-ink2: #B3A2A5;
+    --sis-rule: #2E2325;
+    --sis: #EE4A62;
+    --sis-soft: #3F1820;
+  }
+}
+:root[data-theme=dark] .sister {
+  --sis-bg: #1D1517;
+  --sis-ink: #EFE4E5;
+  --sis-ink2: #B3A2A5;
+  --sis-rule: #2E2325;
+  --sis: #EE4A62;
+  --sis-soft: #3F1820;
+}
+.sister {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--sis-bg);
+  color: var(--sis-ink);
+  text-decoration: none;
+  border: 1px solid var(--sis-rule);
+  border-left: 4px solid var(--sis);
+  border-radius: 10px;
+}
+.sister:hover {
+  border-color: var(--sis);
+  background: var(--sis-soft);
+}
+.sister:focus-visible {
+  outline-color: var(--sis);
+}
+.sis-kicker {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--sis);
+}
+.sis-title {
+  font-family: "Saira Condensed", var(--f-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.sis-desc {
+  font-size: 13px;
+  color: var(--sis-ink2);
+  text-wrap: pretty;
+}
+.sis-go {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  font-size: 22px;
+  color: var(--sis);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sister {
+    transition: background-color .12s, border-color .12s;
+  }
+  .sister .sis-go {
+    transition: transform .12s;
+  }
+  .sister:hover .sis-go {
+    transform: translateX(3px);
+  }
+}
